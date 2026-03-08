@@ -11,7 +11,7 @@
   "workers_dev": false,
   "preview_urls": false,
 
-  // 👉 NOUVELLE SYNTAXE D'INTERCEPTION (KISS) :
+  // 👉 Interception directe de ton domaine lkmail.me
   "routes": [
     "lkmail.me/*",
     "www.lkmail.me/*"
