@@ -12,7 +12,7 @@ The project is engineered to maximize **E-E-A-T** (Experience, Expertise, Author
 * **Language:** TypeScript
 * **Styling:** Tailwind CSS v4 (Using modern CSS `@theme` directives, no `tailwind.config.js`) + Framer Motion
 * **UI Components (Mix & Match):**
-  * **Shadcn/ui:** For robust, accessible base components (Buttons, Inputs, Cards). *Note: Must be adapted for Tailwind v4.*
+  * **Shadcn/ui:** For robust, accessible base components (Buttons, Inputs, Cards). *Note: Must be manually adapted for Tailwind v4.*
   * **Aceternity UI / Magic UI:** For the "Wow" effect, marketing hooks, and engaging micro-interactions.
 * **Deployment:** Cloudflare Pages / Workers (via OpenNext)
 * **Version Control:** GitHub
@@ -95,6 +95,7 @@ lkmail/
     └── lib/                    # Utilities & API wrappers
         ├── api/                # Wrappers for GitHub, Resend, Plex, etc.
         ├── imageLoader.ts      # Centralized Image CDN logic
+        ├── routes.ts           # Centralized routing dictionary
         └── utils.ts            # Tailwind merge & clsx utils
 
 ```
@@ -105,12 +106,21 @@ lkmail/
 
 To maintain a clean, high-performance, and unified codebase, you **MUST** adhere to the following rules when writing or modifying code:
 
-### 1. Server / Client Separation
+### 1. AI Communication Language
+
+Whenever you reply to prompts, generate documentation, or provide code explanations, you **MUST strictly use US English**.
+
+### 2. Server / Client Separation
 
 By default, all components are **Server Components**.
 The `"use client"` directive must strictly be isolated to specific interactive files (e.g., inside `src/components/ui/` or interactive form components). Never apply `"use client"` to an entire page route (`page.tsx`).
 
-### 2. Global Image Management (Image Loader) & No SVG Rule
+### 3. Centralized Routing (No Hardcoded URLs)
+
+Never hardcode internal URLs (e.g., `href="/about"`). All internal application routes must be referenced using the centralized dictionary located in `src/lib/routes.ts`.
+Example: `href={ROUTES.ABOUT}`
+
+### 4. Global Image Management (Image Loader) & No SVG Rule
 
 It is strictly forbidden to hardcode raw image URLs inside `<Image />` tags. Furthermore, the use of `.svg` files (except for simple icons/favicon) is discouraged for complex design assets. All graphical assets and images must pass through our AI-powered Edge proxy for smart cropping (`&a=attention`) and format optimization.
 
@@ -137,11 +147,11 @@ export default function wsrvLoader({ src, width, quality }: { src: string, width
 
 *Component Usage:* `<Image loader={wsrvLoader} src="my-portrait.jpg" alt="..." width={500} height={500} />`
 
-### 3. API Route Handlers Security
+### 5. API Route Handlers Security
 
 All external API calls (GitHub, Resend, Plex) MUST be executed server-side. Create wrappers in `src/lib/api/` or Next.js Route Handlers in `src/app/api/` to ensure API keys are never exposed to the client.
 
-### 4. Dynamic SEO Injection & JSON-LD (E-E-A-T)
+### 6. Dynamic SEO Injection & JSON-LD (E-E-A-T)
 
 Every page must export the `generateMetadata` function. JSON-LD (Structured Data) is mandatory for the Blog and About pages to establish authoritativeness. It must be injected natively to avoid hydration issues:
 
@@ -150,12 +160,12 @@ Every page must export the `generateMetadata` function. JSON-LD (Structured Data
 
 ```
 
-### 5. Tailwind v4 & UI Component Adaptation
+### 7. Tailwind v4 & UI Component Adaptation
 
 The project uses **Tailwind CSS v4**. There is no `tailwind.config.js`. Variables and themes are managed directly inside `src/app/globals.css` using the `@theme` directive.
 When integrating components from *Shadcn/ui*, *Aceternity*, or *Magic UI*, you must manually adapt their styling requirements to fit the Tailwind v4 CSS variable structure rather than attempting to create a legacy config file.
 
-### 6. Localization (i18n) & Copywriting Separation
+### 8. Localization (i18n) & Copywriting Separation
 
 Business logic and copywriting must be isolated from the UI design.
 All text content is managed via our dictionaries (`src/dictionaries/fr.json` and `src/dictionaries/en.json`). Components receive these dictionary objects as props. Do not hardcode French or English text directly inside `tsx` files.
@@ -206,3 +216,38 @@ To deploy directly from your local machine to Cloudflare, simply run:
 pnpm run deploy
 
 ```
+
+---
+
+## Project Roadmap & Task List
+
+**Phase 1: Foundation & Architecture**
+
+* [x] Initialize Next.js 16 App Router with Tailwind CSS v4.
+* [x] Configure OpenNext for Cloudflare Pages/Workers deployment.
+* [x] Fix OpenNext infinite build loop in `package.json`.
+* [x] Implement i18n middleware and dictionary system.
+* [x] Setup centralized routing (`src/lib/routes.ts`).
+* [x] Create root localized layout and dynamic `[lang]` routing.
+* [x] Build global Server Component Navbar with Language Switcher.
+* [x] Generate and implement custom Tailwind-themed SVG favicon.
+
+**Phase 2: Core Features & UI**
+
+* [ ] Implement `src/lib/imageLoader.ts` for wsrv.nl image optimization.
+* [ ] Design and build the Home page (Hero section, animations).
+* [ ] Build the MDX Blog architecture (local file parsing, routing).
+* [ ] Build the About page.
+* [ ] Build the Projects/Portfolio page.
+
+**Phase 3: API Integrations (The Hub)**
+
+* [ ] Integrate Resend API for the Contact form.
+* [ ] Integrate GitHub GraphQL API for the Portfolio page.
+* [ ] Set up Cloudflare Web Analytics (privacy-first tracking).
+* [ ] Set up Cloudflare Email Routing Worker (inbound email).
+* [ ] (Optional) Integrate Plex / Spotify API for live status.
+* [ ] (Optional) Integrate WakaTime API for coding stats.
+
+```
+

@@ -1,8 +1,14 @@
 import { getDictionary, Locale } from "@/getDictionary";
 
-export default async function Home({ params }: { params: Promise<{ lang: Locale }> }) {
+export default async function Home({ 
+  params 
+}: { 
+  // MUST be 'string' here to satisfy Next.js PageProps
+  params: Promise<{ lang: string }> 
+}) {
   const { lang } = await params;
-  const dict = await getDictionary(lang);
+  // Cast to 'Locale'
+  const dict = await getDictionary(lang as Locale);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8 font-sans">

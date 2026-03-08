@@ -28,10 +28,12 @@ export default async function RootLayout({
   params,
 }: Readonly<{
   children: React.ReactNode;
-  params: Promise<{ lang: Locale }>;
+  // MUST be 'string' here to satisfy Next.js LayoutProps
+  params: Promise<{ lang: string }>; 
 }>) {
   const { lang } = await params;
-  const dict = await getDictionary(lang);
+  // Cast 'lang' to 'Locale' here so getDictionary accepts it
+  const dict = await getDictionary(lang as Locale);
 
   return (
     <html lang={lang}>
@@ -40,10 +42,8 @@ export default async function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white dark:bg-[#0a0a0a] text-[#171717] dark:text-[#ededed] min-h-screen flex flex-col`}>
         
-        {/* On injecte la Navbar en haut */}
         <Navbar dict={dict} lang={lang} />
         
-        {/* Le contenu de la page (grow au lieu de flex-grow) */}
         <main className="grow">
           {children}
         </main>
