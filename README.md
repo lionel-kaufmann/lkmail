@@ -10,6 +10,7 @@ The project is engineered to maximize **E-E-A-T** (Experience, Expertise, Author
 
 * **Framework:** Next.js 16 (App Router - React 19)
 * **Language:** TypeScript
+* **Package Manager:** pnpm
 * **Styling:** Tailwind CSS v4 (Using modern CSS `@theme` directives, no `tailwind.config.js`) + Framer Motion
 * **UI Components (Mix & Match):**
   * **Shadcn/ui:** For robust, accessible base components (Buttons, Inputs, Cards). *Note: Must be manually adapted for Tailwind v4.*
@@ -98,35 +99,26 @@ lkmail/
         ├── routes.ts           # Centralized routing dictionary
         └── utils.ts            # Tailwind merge & clsx utils
 
-```
 
----
+Golden Rules (AI & Developer Instructions)
+To maintain a clean, high-performance, and unified codebase, you MUST adhere to the following rules when writing or modifying code:
+1. AI Communication Language
+Whenever you reply to prompts, generate documentation, or provide code explanations, you MUST strictly use US English.
+2. Strictly pnpm
+Always use pnpm for package management and executing scripts. Do not use npm or yarn under any circumstances to avoid lockfile conflicts.
+3. Server / Client Separation
+By default, all components are Server Components.
+The "use client" directive must strictly be isolated to specific interactive files (e.g., inside src/components/ui/ or interactive form components). Never apply "use client" to an entire page route (page.tsx).
+4. Centralized Routing (No Hardcoded URLs)
+Never hardcode internal URLs (e.g., href="/about"). All internal application routes must be referenced using the centralized dictionary located in src/lib/routes.ts.
+Example: href={ROUTES.ABOUT}
+5. Global Image Management (Image Loader) & No SVG Rule
+It is strictly forbidden to hardcode raw image URLs inside <Image /> tags. Furthermore, the use of .svg files (except for simple icons/favicon) is discouraged for complex design assets. All graphical assets and images must pass through our AI-powered Edge proxy for smart cropping (&a=attention) and format optimization.
+You must use the Centralized Loader (src/lib/imageLoader.ts):
 
-## Golden Rules (AI & Developer Instructions)
+TypeScript
 
-To maintain a clean, high-performance, and unified codebase, you **MUST** adhere to the following rules when writing or modifying code:
 
-### 1. AI Communication Language
-
-Whenever you reply to prompts, generate documentation, or provide code explanations, you **MUST strictly use US English**.
-
-### 2. Server / Client Separation
-
-By default, all components are **Server Components**.
-The `"use client"` directive must strictly be isolated to specific interactive files (e.g., inside `src/components/ui/` or interactive form components). Never apply `"use client"` to an entire page route (`page.tsx`).
-
-### 3. Centralized Routing (No Hardcoded URLs)
-
-Never hardcode internal URLs (e.g., `href="/about"`). All internal application routes must be referenced using the centralized dictionary located in `src/lib/routes.ts`.
-Example: `href={ROUTES.ABOUT}`
-
-### 4. Global Image Management (Image Loader) & No SVG Rule
-
-It is strictly forbidden to hardcode raw image URLs inside `<Image />` tags. Furthermore, the use of `.svg` files (except for simple icons/favicon) is discouraged for complex design assets. All graphical assets and images must pass through our AI-powered Edge proxy for smart cropping (`&a=attention`) and format optimization.
-
-**You must use the Centralized Loader (`src/lib/imageLoader.ts`):**
-
-```typescript
 "use client";
 
 export default function wsrvLoader({ src, width, quality }: { src: string, width: number, quality?: number }) {
@@ -143,58 +135,65 @@ export default function wsrvLoader({ src, width, quality }: { src: string, width
   return `https://wsrv.nl/?${params.toString()}`;
 }
 
-```
 
-*Component Usage:* `<Image loader={wsrvLoader} src="my-portrait.jpg" alt="..." width={500} height={500} />`
+Component Usage: <Image loader={wsrvLoader} src="lk1.jpg" alt="..." width={500} height={500} />
+6. API Route Handlers Security
+All external API calls (GitHub, Resend, Plex) MUST be executed server-side. Create wrappers in src/lib/api/ or Next.js Route Handlers in src/app/api/ to ensure API keys are never exposed to the client.
+7. Dynamic SEO Injection & JSON-LD (E-E-A-T)
+Every page must export the generateMetadata function. JSON-LD (Structured Data) is mandatory for the Blog and About pages to establish authoritativeness. It must be injected natively to avoid hydration issues:
 
-### 5. API Route Handlers Security
+TypeScript
 
-All external API calls (GitHub, Resend, Plex) MUST be executed server-side. Create wrappers in `src/lib/api/` or Next.js Route Handlers in `src/app/api/` to ensure API keys are never exposed to the client.
 
-### 6. Dynamic SEO Injection & JSON-LD (E-E-A-T)
-
-Every page must export the `generateMetadata` function. JSON-LD (Structured Data) is mandatory for the Blog and About pages to establish authoritativeness. It must be injected natively to avoid hydration issues:
-
-```tsx
 <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-```
 
-### 7. Tailwind v4 & UI Component Adaptation
-
-The project uses **Tailwind CSS v4**. There is no `tailwind.config.js`. Variables and themes are managed directly inside `src/app/globals.css` using the `@theme` directive.
-When integrating components from *Shadcn/ui*, *Aceternity*, or *Magic UI*, you must manually adapt their styling requirements to fit the Tailwind v4 CSS variable structure rather than attempting to create a legacy config file.
-
-### 8. Localization (i18n) & Copywriting Separation
-
+8. Tailwind v4 & UI Component Adaptation
+The project uses Tailwind CSS v4. There is no tailwind.config.js. Variables and themes are managed directly inside src/app/globals.css using the @theme directive.
+When integrating components from Shadcn/ui, Aceternity, or Magic UI, you must manually adapt their styling requirements to fit the Tailwind v4 CSS variable structure rather than attempting to create a legacy config file.
+9. Localization (i18n) & Copywriting Separation
 Business logic and copywriting must be isolated from the UI design.
-All text content is managed via our dictionaries (`src/dictionaries/fr.json` and `src/dictionaries/en.json`). Components receive these dictionary objects as props. Do not hardcode French or English text directly inside `tsx` files.
+All text content is managed via our dictionaries (src/dictionaries/fr.json and src/dictionaries/en.json). Components receive these dictionary objects as props. Do not hardcode French or English text directly inside tsx files.
+10. Dynamic Route Params Typing (Next.js 15+)
+In Next.js 15+, dynamic route parameters (params) are asynchronous (Promise) and strictly typed by the framework as generic strings. Never type params directly with custom literal types (like Locale). Instead, type them as generic strings and cast them inside the component body.
 
----
+TypeScript
 
-## Local Development
 
-1. Install dependencies:
+// ❌ BAD
+export default async function Page({ params }: { params: Promise<{ lang: Locale }> }) { ... }
 
-```bash
-pnpm install
+// ✅ GOOD (KISS)
+export default async function Page({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const dict = await getDictionary(lang as Locale);
+  // ...
+}
 
-```
 
-2. Run the development server:
+Chronological Setup Guide (KISS Playbook)
+If this project needs to be reproduced from scratch, follow these chronological steps to avoid structural and deployment glitches:
+Step 1: Initialization
+Initialize the project using the official Cloudflare CLI to ensure perfect OpenNext compatibility from the start.
+Create an empty GitHub repository named lkmail.
+Clone it locally using Visual Studio Code.
+Open the integrated terminal and navigate to the parent directory: cd ..
+Run the Cloudflare creation command specifying the Next.js framework:
 
-```bash
-pnpm run dev
+Bash
 
-```
 
-## Cloudflare Deployment & OpenNext Build
+pnpm create cloudflare@latest lkmail --framework=next
 
-To prevent known OpenNext infinite build loops during Cloudflare deployments, the build commands in `package.json` **MUST** be strictly separated. Do not combine `next build` and `opennextjs-cloudflare build` into a single `"build"` script.
 
-**Required `package.json` scripts:**
+This will generate the Next.js 16 App Router project with Tailwind v4, TypeScript, and ESLint directly into your cloned repository folder.
+Step 2: OpenNext & Cloudflare Setup
+Install @opennextjs/cloudflare and configure wrangler.jsonc.
+CRITICAL: To prevent the OpenNext infinite build loop during Cloudflare CI/CD, split the build commands in package.json:
 
-```json
+JSON
+
+
 "scripts": {
   "dev": "next dev",
   "build": "next build",
@@ -202,52 +201,53 @@ To prevent known OpenNext infinite build loops during Cloudflare deployments, th
   "deploy": "pnpm run build:cloudflare && opennextjs-cloudflare deploy"
 }
 
-```
 
-**Cloudflare Dashboard Configuration (CI/CD):**
-When deploying via Cloudflare Pages GitHub integration, you MUST configure the following in the project's **Settings > Builds & Deployments**:
+In the Cloudflare Dashboard (Settings > Builds & Deployments), set the build command to pnpm run build:cloudflare.
+Step 3: Cloudflare DNS Proxy Configuration
+To link the Worker to the custom domain (lkmail.me):
+In wrangler.jsonc, define the routes array: ["lkmail.me/*", "www.lkmail.me/*"].
+In the Cloudflare DNS Dashboard, create two AAAA records (@ and www) pointing to 100::.
+Ensure the proxy status is Proxied (Orange Cloud).
+Step 4: Internationalization (i18n) Middleware
+Create src/dictionaries/en.json and fr.json.
+Create src/getDictionary.ts to load the JSON asynchronously.
+Create src/middleware.ts to read the accept-language header and redirect users (e.g., / to /en).
+Move all pages into src/app/[lang]/. Apply Golden Rule #10 to handle the async params.
+Step 5: Centralized Routing & Layout
+Create src/lib/routes.ts exporting a ROUTES constant object.
+Build a Server Component Navbar.tsx that receives the dictionary as props.
+Build a Client Component LanguageSwitcher.tsx using usePathname to toggle the locale without losing the current route.
+Clean up the globals.css and use native Tailwind v4 grow utility classes in the root layout.
+Step 6: Branding & Aesthetics
+Replace the default .ico with a pure SVG favicon.svg leveraging native SVG filters (like <feGaussianBlur>) to match the Tailwind fuchsia/purple/indigo dark mode theme, reducing external asset loading.
+Project Roadmap & Task List
+Phase 1: Foundation & Architecture
+[x] Initialize Next.js 16 App Router with Tailwind CSS v4.
+[x] Configure OpenNext for Cloudflare Pages/Workers deployment.
+[x] Fix OpenNext infinite build loop in package.json.
+[x] Implement i18n middleware and dictionary system.
+[x] Setup centralized routing (src/lib/routes.ts).
+[x] Create root localized layout and dynamic [lang] routing.
+[x] Build global Server Component Navbar with Language Switcher.
+[x] Generate and implement custom Tailwind-themed SVG favicon.
+[x] Fix Next.js 15+ dynamic route params TypeScript strictness.
+[x] Configure Cloudflare DNS proxy records for custom domain routing.
+Phase 2: Core Features & UI
+[ ] Implement src/lib/imageLoader.ts for wsrv.nl image optimization.
+[ ] Design and build the Home page (Hero section, animations).
+[ ] Build the MDX Blog architecture (local file parsing, routing).
+[ ] Build the About page.
+[ ] Build the Projects/Portfolio page.
+Phase 3: API Integrations (The Hub)
+[ ] Integrate Resend API for the Contact form.
+[ ] Integrate GitHub GraphQL API for the Portfolio page.
+[ ] Set up Cloudflare Web Analytics (privacy-first tracking).
+[ ] Set up Cloudflare Email Routing Worker (inbound email).
+[ ] (Optional) Integrate Plex / Spotify API for live status.
+[ ] (Optional) Integrate WakaTime API for coding stats.
 
-* **Build command:** `pnpm run build:cloudflare`
 
-**Local Manual Deployment:**
-To deploy directly from your local machine to Cloudflare, simply run:
 
-```bash
-pnpm run deploy
 
-```
 
----
-
-## Project Roadmap & Task List
-
-**Phase 1: Foundation & Architecture**
-
-* [x] Initialize Next.js 16 App Router with Tailwind CSS v4.
-* [x] Configure OpenNext for Cloudflare Pages/Workers deployment.
-* [x] Fix OpenNext infinite build loop in `package.json`.
-* [x] Implement i18n middleware and dictionary system.
-* [x] Setup centralized routing (`src/lib/routes.ts`).
-* [x] Create root localized layout and dynamic `[lang]` routing.
-* [x] Build global Server Component Navbar with Language Switcher.
-* [x] Generate and implement custom Tailwind-themed SVG favicon.
-
-**Phase 2: Core Features & UI**
-
-* [ ] Implement `src/lib/imageLoader.ts` for wsrv.nl image optimization.
-* [ ] Design and build the Home page (Hero section, animations).
-* [ ] Build the MDX Blog architecture (local file parsing, routing).
-* [ ] Build the About page.
-* [ ] Build the Projects/Portfolio page.
-
-**Phase 3: API Integrations (The Hub)**
-
-* [ ] Integrate Resend API for the Contact form.
-* [ ] Integrate GitHub GraphQL API for the Portfolio page.
-* [ ] Set up Cloudflare Web Analytics (privacy-first tracking).
-* [ ] Set up Cloudflare Email Routing Worker (inbound email).
-* [ ] (Optional) Integrate Plex / Spotify API for live status.
-* [ ] (Optional) Integrate WakaTime API for coding stats.
-
-```
 
