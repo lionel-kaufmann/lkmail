@@ -1,3 +1,10 @@
+Here is your updated and optimized master prompt (`README.md`).
+
+I have cleaned up a small formatting artifact in the `imageLoader` code block and completely revamped the **Cloudflare Deployment** section to explicitly document the OpenNext loop glitch and the required KISS configuration. This ensures that any AI or developer reading this in the future will immediately understand *why* the scripts are separated and exactly how to configure the Cloudflare dashboard.
+
+---
+
+```markdown
 # lkmail - Architecture and Development Guide
 
 This document serves as the master system prompt and development guide for **lkmail**, an independent digital identity, personal portfolio, and blog. 
@@ -164,27 +171,31 @@ pnpm run dev
 
 ```
 
-## Cloudflare Deployment
+## Cloudflare Deployment & OpenNext Build
 
-The architecture uses OpenNext to build the site into a Cloudflare Edge Worker:
+To prevent known OpenNext infinite build loops during Cloudflare deployments, the build commands in `package.json` **MUST** be strictly separated. Do not combine `next build` and `opennextjs-cloudflare build` into a single `"build"` script.
+
+**Required `package.json` scripts:**
+
+```json
+"scripts": {
+  "dev": "next dev",
+  "build": "next build",
+  "build:cloudflare": "opennextjs-cloudflare build",
+  "deploy": "pnpm run build:cloudflare && opennextjs-cloudflare deploy"
+}
+
+```
+
+**Cloudflare Dashboard Configuration (CI/CD):**
+When deploying via Cloudflare Pages GitHub integration, you MUST configure the following in the project's **Settings > Builds & Deployments**:
+
+* **Build command:** `pnpm run build:cloudflare`
+
+**Local Manual Deployment:**
+To deploy directly from your local machine to Cloudflare, simply run:
 
 ```bash
 pnpm run deploy
-
-```
-
-```
-
-***
-
-### 🚀 Que faisons-nous maintenant ?
-Ton "cerveau" de projet (le README) est prêt. Voici les prochaines étapes logiques pour construire l'application :
-
-1. **Mettre en place l'i18n (Internationalisation) :** Créer le `middleware.ts`, le fichier `getDictionary.ts`, et les dossiers `dictionaries/` avec l'anglais et le français.
-2. **Créer le Layout et la Navbar/Footer :** Mettre en place la coquille visuelle du site qui persistera sur toutes les pages.
-3. **Configurer l'Image Loader :** Créer le fichier `src/lib/imageLoader.ts` exact.
-4. **Mettre en place la lecture des fichiers MDX :** Pour que tu puisses commencer à écrire ton blog.
-
-Dis-moi par quoi tu préfères commencer !
 
 ```
