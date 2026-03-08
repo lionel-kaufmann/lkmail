@@ -1,0 +1,12 @@
+{
+  "nav": {
+    "about": "About",
+    "blog": "Blog",
+    "projects": "Projects",
+    "contact": "Contact"
+  },
+  "home": {
+    "title": "Independent Digital Identity",
+    "description": "Welcome to my personal space on the web."
+  }
+}

@@ -1,10 +1,3 @@
-Here is your updated and optimized master prompt (`README.md`).
-
-I have cleaned up a small formatting artifact in the `imageLoader` code block and completely revamped the **Cloudflare Deployment** section to explicitly document the OpenNext loop glitch and the required KISS configuration. This ensures that any AI or developer reading this in the future will immediately understand *why* the scripts are separated and exactly how to configure the Cloudflare dashboard.
-
----
-
-```markdown
 # lkmail - Architecture and Development Guide
 
 This document serves as the master system prompt and development guide for **lkmail**, an independent digital identity, personal portfolio, and blog. 
@@ -21,10 +14,22 @@ The project is engineered to maximize **E-E-A-T** (Experience, Expertise, Author
 * **UI Components (Mix & Match):**
   * **Shadcn/ui:** For robust, accessible base components (Buttons, Inputs, Cards). *Note: Must be adapted for Tailwind v4.*
   * **Aceternity UI / Magic UI:** For the "Wow" effect, marketing hooks, and engaging micro-interactions.
-* **Content Management:** MDX (Local Markdown files for the blog, zero heavy CMS/DB).
 * **Deployment:** Cloudflare Pages / Workers (via OpenNext)
 * **Version Control:** GitHub
-* **Image CDN:** wsrv.nl with AI-powered smart cropping
+
+---
+
+## Digital Identity & API Integrations (The Hub)
+
+`lkmail` is not just a static site; it is a living digital identity relying on specific APIs to aggregate data:
+
+* **Blog Content:** MDX (Local). No heavy headless CMS. Blog posts live in the repository under `src/content/blog/`.
+* **Outbound Emails:** **Resend API** is used for transactional emails (e.g., contact form submissions).
+* **Inbound Emails:** **Cloudflare Email Routing Worker**. Intercepts incoming mail to the custom domain, allowing custom logic (filtering, Discord/Telegram notifications, forwarding).
+* **Portfolio Data:** **GitHub GraphQL API** to fetch and display the latest repositories, commits, and languages used.
+* **Analytics:** **Cloudflare Web Analytics**. Zero third-party servers, privacy-first, cookie-less tracking natively integrated into the Cloudflare ecosystem.
+* **Personalization APIs (Optional/Future):** * **Plex API / Spotify API:** To fetch and display real-time media consumption ("Currently watching/listening...").
+  * **WakaTime API:** To display real-time coding statistics.
 
 ---
 
@@ -63,6 +68,8 @@ lkmail/
     │   ├── robots.ts           # Dynamic SEO
     │   ├── sitemap.ts          # Dynamic SEO
     │   │
+    │   ├── api/                # Route Handlers for external APIs (Resend, GitHub, etc.)
+    │   │
     │   └── [lang]/             # Internationalized Routing (fr/en)
     │       ├── layout.tsx      # Root localized layout
     │       ├── page.tsx        # Home page (Hero, Latest Posts, Selected Projects)
@@ -85,7 +92,8 @@ lkmail/
     │   ├── en.json
     │   └── fr.json
     │
-    └── lib/                    # Utilities & Configs
+    └── lib/                    # Utilities & API wrappers
+        ├── api/                # Wrappers for GitHub, Resend, Plex, etc.
         ├── imageLoader.ts      # Centralized Image CDN logic
         └── utils.ts            # Tailwind merge & clsx utils
 
@@ -129,10 +137,9 @@ export default function wsrvLoader({ src, width, quality }: { src: string, width
 
 *Component Usage:* `<Image loader={wsrvLoader} src="my-portrait.jpg" alt="..." width={500} height={500} />`
 
-### 3. MDX Blog Architecture (KISS Principle)
+### 3. API Route Handlers Security
 
-Do not install heavy CMS headless clients or complex database ORMs for the blog.
-All blog posts are written in `.mdx` format and stored in `src/content/blog/`. Use native Next.js features (like `next-mdx-remote` or `mdx-components`) or a lightweight content parser to read the file system and render the blog.
+All external API calls (GitHub, Resend, Plex) MUST be executed server-side. Create wrappers in `src/lib/api/` or Next.js Route Handlers in `src/app/api/` to ensure API keys are never exposed to the client.
 
 ### 4. Dynamic SEO Injection & JSON-LD (E-E-A-T)
 
