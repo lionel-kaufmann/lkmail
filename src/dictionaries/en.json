@@ -16,5 +16,9 @@
     "bio2": "My current focus is on modern web architecture, edge computing, and building platforms that maximize E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness) without sacrificing speed or privacy.",
     "architectureTitle": "Digital Identity Hub",
     "architectureDescription": "How data flows through my personal ecosystem in real-time."
+  },
+  "blog": {
+    "title": "Blog",
+    "description": "Writing about code, architecture, and life."
   }
 }

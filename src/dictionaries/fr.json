@@ -16,5 +16,9 @@
     "bio2": "Je me concentre actuellement sur l'architecture web moderne, l'edge computing et la création de plateformes qui maximisent l'E-E-A-T (Expérience, Expertise, Autorité, Fiabilité) sans jamais sacrifier la vitesse ou la confidentialité.",
     "architectureTitle": "Hub d'Identité Numérique",
     "architectureDescription": "Comment les données circulent dans mon écosystème en temps réel."
+  },
+  "blog": {
+    "title": "Blog",
+    "description": "Écrits sur le code, l'architecture et la vie."
   }
 }
