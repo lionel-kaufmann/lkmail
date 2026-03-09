@@ -13,7 +13,15 @@ export default function HeroBanner({ title, subtitle }: { title: string; subtitl
         </p>
       </div>
       <div className="w-48 h-48 md:w-64 md:h-64 relative rounded-full overflow-hidden border-4 border-fuchsia-500 shadow-[0_0_30px_rgba(217,70,239,0.3)] shrink-0">
-        <Image loader={wsrvLoader} src="lk1.jpg" alt="lkmail Avatar" fill className="object-cover" priority />
+        <Image 
+          loader={wsrvLoader} 
+          src="lk1.png" 
+          alt="lkmail Avatar" 
+          fill 
+          sizes="(max-width: 768px) 192px, 256px"
+          className="object-cover" 
+          priority 
+        />
       </div>
     </section>
   );

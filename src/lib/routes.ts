@@ -27,6 +27,11 @@ export const ROUTES: Record<Locale, RouteMap> = {
   },
 } as const;
 
+// External links centralized to avoid hardcoding across components
+export const EXTERNAL_LINKS = {
+  GITHUB: "https://github.com/lionel-kaufmann",
+} as const;
+
 // Helper function to easily grab the correct path based on the current locale
 export function getRoute(routeKey: keyof RouteMap, locale: Locale | string): string {
   const safeLocale = (locale === "fr" || locale === "en") ? locale : "en";

@@ -8,5 +8,13 @@
   "home": {
     "title": "Identité Digitale Indépendante",
     "description": "Bienvenue sur mon espace personnel sur le web."
+  },
+  "about": {
+    "title": "À propos",
+    "description": "La personne derrière l'identité numérique.",
+    "bio1": "Je suis un développeur indépendant passionné par la création d'expériences numériques minimalistes et ultra-performantes. Je crois fermement au principe KISS (Keep It Simple, Stupid). Les problèmes complexes ont souvent des solutions élégantes et directes si l'on prend le temps de les chercher.",
+    "bio2": "Je me concentre actuellement sur l'architecture web moderne, l'edge computing et la création de plateformes qui maximisent l'E-E-A-T (Expérience, Expertise, Autorité, Fiabilité) sans jamais sacrifier la vitesse ou la confidentialité.",
+    "architectureTitle": "Hub d'Identité Numérique",
+    "architectureDescription": "Comment les données circulent dans mon écosystème en temps réel."
   }
 }
