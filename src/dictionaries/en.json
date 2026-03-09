@@ -20,5 +20,10 @@
   "blog": {
     "title": "Blog",
     "description": "Writing about code, architecture, and life."
+  },
+  "projects": {
+    "title": "Projects",
+    "description": "A collection of my recent work and open-source contributions fetched directly from GitHub.",
+    "viewOnGithub": "View on GitHub"
   }
 }
