@@ -25,5 +25,16 @@
     "title": "Projets",
     "description": "Une collection de mes travaux récents et contributions open-source, récupérée directement depuis GitHub.",
     "viewOnGithub": "Voir sur GitHub"
+  },
+  "contact": {
+    "title": "Contact",
+    "description": "N'hésitez pas à me contacter pour des collaborations, des questions ou simplement pour dire bonjour.",
+    "name": "Nom",
+    "email": "E-mail",
+    "message": "Message",
+    "send": "Envoyer le message",
+    "sending": "Envoi en cours...",
+    "success": "Message envoyé avec succès ! Je vous répondrai bientôt.",
+    "error": "Échec de l'envoi. Veuillez réessayer."
   }
 }
