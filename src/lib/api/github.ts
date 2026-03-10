@@ -12,10 +12,7 @@ export type GitHubRepo = {
 export async function getLatestRepos(): Promise<GitHubRepo[]> {
   const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 
-  if (!GITHUB_TOKEN) {
-    console.warn("GITHUB_TOKEN is not set. Returning empty projects list.");
-    return [];
-  }
+  if (!GITHUB_TOKEN) return [];
 
   const query = `
     query {
@@ -42,14 +39,14 @@ export async function getLatestRepos(): Promise<GitHubRepo[]> {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${GITHUB_TOKEN}`,
+        "User-Agent": "lkmail-portfolio",
       },
       body: JSON.stringify({ query }),
-      next: { revalidate: 3600 },
+      next: { revalidate: 3600 }, // 1-hour cache restored!
     });
 
-    if (!res.ok) throw new Error("Failed to fetch GitHub data");
+    if (!res.ok) return [];
 
-    // Strictly type the expected JSON response to satisfy the TS compiler
     const json = (await res.json()) as { 
       data: { user: { repositories: { nodes: GitHubRepo[] } } } 
     };
