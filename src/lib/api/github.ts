@@ -3,10 +3,14 @@ export type GitHubRepo = {
   description: string | null;
   url: string;
   stargazerCount: number;
+  pushedAt: string;
   primaryLanguage: {
     name: string;
     color: string;
   } | null;
+  repositoryTopics: {
+    nodes: { topic: { name: string } }[];
+  };
 };
 
 export async function getLatestRepos(): Promise<GitHubRepo[]> {
@@ -23,9 +27,17 @@ export async function getLatestRepos(): Promise<GitHubRepo[]> {
             description
             url
             stargazerCount
+            pushedAt
             primaryLanguage {
               name
               color
+            }
+            repositoryTopics(first: 3) {
+              nodes {
+                topic {
+                  name
+                }
+              }
             }
           }
         }
@@ -42,7 +54,7 @@ export async function getLatestRepos(): Promise<GitHubRepo[]> {
         "User-Agent": "lkmail-portfolio",
       },
       body: JSON.stringify({ query }),
-      next: { revalidate: 3600 }, // 1-hour cache restored!
+      next: { revalidate: 3600 },
     });
 
     if (!res.ok) return [];
