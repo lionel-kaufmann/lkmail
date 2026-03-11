@@ -1,0 +1,52 @@
+---
+title: "lkmail Update 1.12: Eradicating Markdown Artifacts in Next.js Links"
+description: "How hidden AI markdown formatting can break external links in Next.js, and the clean-up applied to our Footer component."
+date: "2026-03-12"
+author: "Lionel Kaufmann"
+tags: ["Next.js", "React", "Debugging", "Routing", "Clean Code"]
+---
+
+Welcome to Update 1.12 of the **lkmail** development journey!
+
+When you use AI as a coding partner to generate and manage architectural blueprints, you have to be vigilant about text formatting. Today, we caught a classic Markdown artifact that was quietly breaking the external routing in our application.
+
+## The Hidden Routing Bug
+
+In our previous updates, the GitHub link in our `Footer.tsx` component was generated with an injected artifact:
+
+```tsx
+// ❌ The Buggy Link
+<a href="[https://github.com/lionel-kaufmann](https://github.com/lionel-kaufmann)">
+  GitHub
+</a>
+
+```
+
+**Why is this a problem?** Because the string inside the `href` attribute starts with a square bracket `[` instead of `http://` or `https://`, the browser and Next.js treat it as a *relative internal path*.
+
+Instead of securely taking the user to GitHub, clicking the link would attempt to route them to a broken, non-existent page on our own domain: `https://lkmail.me/[https://github.com/lionel-kaufmann](...)`.
+
+## The Squeaky-Clean Fix
+
+To respect the **KISS** (Keep It Simple, Stupid) principle, I completely stripped the Markdown formatting from the `Footer.tsx` blueprint. The `href` attribute is now a pure, absolute string.
+
+```tsx
+// ✅ The KISS Fix
+<a 
+  href="[https://github.com/lionel-kaufmann](https://github.com/lionel-kaufmann)" 
+  target="_blank" 
+  rel="noopener noreferrer" 
+  className="hover:text-gray-900 dark:hover:text-white transition-colors"
+>
+  GitHub
+</a>
+
+```
+
+This ensures the link correctly resolves externally, opening your GitHub profile in a new tab exactly as intended.
+
+## Blueprint Integrity
+
+Maintaining absolute purity in the master prompt is essential. If the foundational blueprint contains formatting artifacts, any AI coding assistant reading it might endlessly replicate those errors across new components. By scrubbing these out early, we ensure that Phase 2 development remains frictionless.
+
+With the footer links officially repaired and functioning, we are ready to build the heavy lifters of the application!

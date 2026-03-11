@@ -1,0 +1,76 @@
+---
+title: "lkmail Update 1.16: Implementing the MDX Blog Architecture"
+description: "Turning markdown into React components by building a custom local MDX parser and dynamic Next.js 16 blog routes."
+date: "2026-03-16"
+author: "Lionel Kaufmann"
+tags: ["Next.js", "MDX", "TypeScript", "Architecture", "Phase 2"]
+---
+
+Welcome to Update 1.16 of the **lkmail** development journey!
+
+In Update 1.14, we established the architectural theory for our blog: no heavy Headless CMS, just pure, local `.mdx` files to maximize performance and strictly adhere to the **KISS** (Keep It Simple, Stupid) principle. Today, we actually wrote the code to make those files render on the screen.
+
+## The MDX Parser (`src/lib/mdx.ts`)
+
+To read files directly from the repository, we need a robust backend utility. Because we enforce strict Server/Client separation, this parser runs entirely on the server.
+
+Using Node.js native `fs` (File System) and `path` modules, combined with `gray-matter`, I built a utility function to crawl the `src/content/blog/` directory. 
+
+```typescript
+import fs from 'fs';
+import path from 'path';
+import matter from 'gray-matter';
+
+const BLOG_DIR = path.join(process.cwd(), 'src/content/blog');
+
+export async function getPostBySlug(slug: string) {
+  const filePath = path.join(BLOG_DIR, `${slug}.mdx`);
+  const fileContent = fs.readFileSync(filePath, 'utf8');
+  
+  // gray-matter separates the YAML frontmatter from the markdown body
+  const { data, content } = matter(fileContent);
+  
+  return { metadata: data, content };
+}
+
+```
+
+This simple, lightweight function is all we need to extract our heavily SEO-optimized frontmatter (titles, dates, descriptions) and the raw markdown content. No API keys, no network latency.
+
+## Dynamic Routing with Slugs
+
+Next.js App Router makes generating blog posts incredibly elegant. By creating a folder named `[slug]` inside our blog directory, we tell Next.js that this route is dynamic.
+
+The file lives at `src/app/[lang]/blog/[slug]/page.tsx`.
+
+When a user visits `lkmail.me/en/blog/my-first-post`, the framework passes `my-first-post` into our page as an asynchronous parameter. We then feed that slug into our new `getPostBySlug` utility:
+
+```tsx
+import { getPostBySlug } from "@/lib/mdx";
+// ... imports for next-mdx-remote ...
+
+export default async function BlogPost({ 
+  params 
+}: { 
+  params: Promise<{ lang: string, slug: string }> 
+}) {
+  const { slug } = await params;
+  const post = await getPostBySlug(slug);
+
+  return (
+    <article className="prose dark:prose-invert max-w-none">
+      <h1>{post.metadata.title}</h1>
+      {/* next-mdx-remote compiles the string content into React components here */}
+    </article>
+  );
+}
+
+```
+
+## E-E-A-T and Performance
+
+By utilizing `next-mdx-remote` and Tailwind's `@tailwindcss/typography` plugin (the `prose` class), the raw markdown is beautifully formatted into highly readable, accessible HTML.
+
+Because the files are local, Cloudflare Workers can serve them at the edge with near-zero latency. This lightning-fast delivery, combined with the structured frontmatter metadata, creates the ultimate foundation for search engine Authoritativeness (E-E-A-T).
+
+With the blog engine fully operational, we can officially check another massive item off our Phase 2 Task List!

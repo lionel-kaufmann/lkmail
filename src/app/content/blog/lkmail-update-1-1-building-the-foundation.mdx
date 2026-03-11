@@ -1,0 +1,46 @@
+---
+title: "lkmail Update 1.1: Building a Lightning-Fast Next.js 16 Foundation"
+description: "A chronological guide on how I built the initial architecture for lkmail using Next.js 16, Tailwind CSS v4, and Cloudflare OpenNext."
+date: "2026-03-01"
+author: "Lionel Kaufmann"
+tags: ["Next.js", "Tailwind CSS", "Cloudflare", "Architecture"]
+---
+
+Welcome to the very first development update for **lkmail**! 
+
+When setting out to build my independent digital identity, I knew I needed an architecture that wasn't just fast, but heavily optimized for SEO (E-E-A-T) and incredibly easy to maintain. I strictly followed the **KISS (Keep It Simple, Stupid)** principle. 
+
+Here is a look at what we accomplished in **Phase 1: Foundation & Architecture**.
+
+## The Core Tech Stack
+
+To ensure maximum performance and developer experience, I selected a modern, edge-ready stack:
+* **Next.js 16 (App Router):** The backbone of the application, allowing for advanced server/client separation.
+* **Tailwind CSS v4:** We are using the bleeding-edge `@theme` directives, completely eliminating the need for a legacy `tailwind.config.js`. 
+* **Cloudflare Workers via OpenNext:** Bypassing traditional Node.js servers for ultra-fast, global edge rendering.
+
+## Overcoming Initial Deployment Hurdles
+
+Building on the bleeding edge comes with its challenges. During the initial Cloudflare CI/CD deployment, I encountered the infamous OpenNext infinite build loop. 
+
+The fix was architectural. By properly splitting the build scripts in our `package.json`, we isolated the Next.js build from the Cloudflare specific compilation:
+
+```json
+"scripts": {
+  "build:cloudflare": "opennextjs-cloudflare build",
+  "deploy": "pnpm run build:cloudflare && opennextjs-cloudflare deploy"
+}
+
+```
+
+## Native Internationalization (i18n)
+
+Because `lkmail` serves both English and French audiences, internationalization couldn't be an afterthought.
+
+Instead of relying on heavy third-party i18n libraries, we built a native middleware. It intercepts the user's `accept-language` header and seamlessly routes them via our dynamic `[lang]` directory structure. All copywriting is strictly isolated in `en.json` and `fr.json` dictionary files, keeping our React components perfectly clean and focused solely on the UI.
+
+## What's Next?
+
+With Phase 1 complete, the core routing, DNS proxying, and localized layouts are locked in. Next up in **Phase 2**, we will be focusing on the visual UI, implementing a custom Edge Image Loader for `wsrv.nl`, and bringing the homepage to life with Framer Motion and Magic UI.
+
+Stay tuned for Update 1.2!

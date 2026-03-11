@@ -1,0 +1,57 @@
+---
+title: "lkmail Update 1.15: Optimizing Next.js Image Sizes for Peak Performance"
+description: "How to resolve Next.js Image warnings and maximize CDN performance by mapping Tailwind CSS classes to the sizes attribute."
+date: "2026-03-15"
+author: "Lionel Kaufmann"
+tags: ["Next.js", "Performance", "Tailwind CSS", "Images", "Architecture"]
+---
+
+Welcome to Update 1.15 of the **lkmail** development journey!
+
+When building a digital identity optimized for **E-E-A-T** and SEO, lightning-fast load times are non-negotiable. Today, we addressed a common Next.js warning regarding image optimization and applied a precise "KISS" fix to our `HeroBanner` component to ensure our Edge CDN delivers perfectly sized assets.
+
+## The Next.js `fill` Dilemma
+
+In Next.js, when you use the `fill` property on an `<Image />` component, the image automatically expands to fill its parent container. This is great for responsive design, but it creates a problem for the framework's image optimizer.
+
+Because the framework doesn't inherently know how large that parent container will be at different screen sizes, it conservatively defaults to requesting an image scaled for the full viewport width (`100vw`). 
+
+If your image is actually only taking up a small circle on the screen (like an avatar), downloading a full-viewport-sized image is a massive waste of bandwidth and severely hurts your Core Web Vitals. Next.js helpfully flags this in the console with a warning to provide a `sizes` attribute.
+
+## The KISS Fix: Mapping Tailwind to `sizes`
+
+To fix this, we need to tell Next.js exactly how large our avatar container will be at different breakpoints. 
+
+In our `HeroBanner.tsx`, the parent container uses Tailwind CSS classes to dictate its width: `w-48` on mobile and `md:w-64` on desktop.
+* `w-48` equals exactly **192px**.
+* `w-64` equals exactly **256px**.
+
+By mapping these specific Tailwind values into standard CSS media queries, we can pass the exact blueprint to the Next.js `sizes` prop:
+
+```tsx
+<div className="w-48 h-48 md:w-64 md:h-64 relative rounded-full overflow-hidden border-4 border-fuchsia-500 shadow-[0_0_30px_rgba(217,70,239,0.3)] shrink-0">
+  <Image 
+    loader={wsrvLoader} 
+    src="lk1.jpg" 
+    alt="lkmail Avatar" 
+    fill 
+    sizes="(max-width: 768px) 192px, 256px"
+    className="object-cover" 
+    priority 
+  />
+</div>
+
+```
+
+**How this works:**
+
+1. If the screen is `768px` or smaller (Tailwind's `md` breakpoint), Next.js requests a `192px` optimized image from our Edge CDN (`wsrv.nl`).
+2. Otherwise, it requests a `256px` optimized image.
+
+## Clean Code, Maximum Speed
+
+With this single line of code, the console warning is eradicated, and our bandwidth usage drops drastically. Our `wsrvLoader` will now receive the exact target width and crop the image dynamically using its AI-powered `&a=attention` parameter.
+
+In addition to this image optimization, I also performed another pass over the `EXTERNAL_LINKS` to ensure we are using perfectly clean strings, removing any lingering concatenation artifacts.
+
+With performance dialed in, we are moving ever closer to parsing our actual MDX content!

@@ -1,0 +1,63 @@
+---
+title: "lkmail Update 1.6: Translated SEO Routes and E-E-A-T Optimization"
+description: "Implementing fully localized route paths in Next.js 16 to maximize international SEO and E-E-A-T using a centralized route dictionary."
+date: "2026-03-06"
+author: "Lionel Kaufmann"
+tags: ["Next.js", "SEO", "i18n", "Architecture", "TypeScript"]
+---
+
+Welcome to Update 1.6 of the **lkmail** development journey!
+
+When building a natively internationalized (i18n) Next.js application, translating the user interface is only half the battle. If you truly want to maximize your E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness) in different regions, your URL structures must also speak the user's language. 
+
+Having a French user navigate to `/fr/about` is functionally fine, but navigating to `/fr/a-propos` is highly optimized for localized search engine indexing. 
+
+## Overhauling the Centralized Router
+
+To solve this, I completely overhauled our centralized routing dictionary located in `src/lib/routes.ts`. 
+
+Instead of a simple flat object mapping static strings, the `ROUTES` constant is now a strict TypeScript `Record` that maps our `Locale` (en, fr) to their respective translated paths.
+
+```typescript
+export const ROUTES: Record<Locale, RouteMap> = {
+  en: {
+    HOME: "/",
+    ABOUT: "/about",
+    BLOG: "/blog",
+    PROJECTS: "/projects",
+    CONTACT: "/contact",
+  },
+  fr: {
+    HOME: "/",
+    ABOUT: "/a-propos",
+    BLOG: "/blog",
+    PROJECTS: "/projets",
+    CONTACT: "/contact",
+  },
+} as const;
+
+```
+
+## The `getRoute` Helper Function (KISS)
+
+While the data structure is more complex, the developer experience must remain perfectly simple to respect the **KISS** (Keep It Simple, Stupid) principle.
+
+I do not want to write messy logic like `ROUTES[lang].ABOUT` inside every single `Link` component across the application. To abstract this complexity, I introduced the `getRoute()` helper function directly into the `routes.ts` file:
+
+```typescript
+// Helper function to easily grab the correct path based on the current locale
+export function getRoute(routeKey: keyof RouteMap, locale: Locale | string): string {
+  const safeLocale = (locale === "fr" || locale === "en") ? locale : "en";
+  const path = ROUTES[safeLocale][routeKey];
+  return path === "/" ? `/${safeLocale}` : `/${safeLocale}${path}`;
+}
+
+```
+
+Now, anywhere in our React UI components, we can simply call `href={getRoute('ABOUT', lang)}`. The helper function automatically pre-pends the locale and fetches the perfectly translated SEO slug.
+
+## Conclusion
+
+With translated routing now firmly established in our Phase 1 blueprints, the technical foundation of `lkmail` is incredibly robust. The app is fast, strictly typed, Cloudflare-native, and highly optimized for global SEO.
+
+We are perfectly positioned to finally dive into Phase 2 and start painting the UI!

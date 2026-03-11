@@ -1,0 +1,49 @@
+---
+title: "lkmail Update 1.2: Strict pnpm Enforcement and Code Clean-up"
+description: "Why enforcing a strict package manager (pnpm) and cleaning up code artifacts is essential for maintaining a pristine Next.js 16 architecture."
+date: "2026-03-02"
+author: "Lionel Kaufmann"
+tags: ["Next.js", "pnpm", "Architecture", "KISS"]
+---
+
+Welcome to Update 1.2 of the **lkmail** development journey! 
+
+As I continue to build out my digital identity and portfolio, I am constantly refining the foundational rules of the project. A robust architecture isn't just about what features you add; it is often about the strict constraints you put in place. Today, I am highlighting a few critical "KISS" (Keep It Simple, Stupid) optimizations applied to the codebase.
+
+## The Strict pnpm Rule
+
+One of the most common causes of CI/CD failures and developer friction in modern web development is package manager inconsistency. Mixing `npm`, `yarn`, and `pnpm` in the same project inevitably leads to lockfile conflicts and broken dependency trees.
+
+To ensure absolute consistency from step zero, I have implemented a strict new **Golden Rule**: 
+
+> **Always use pnpm for package management and executing scripts. Do not use npm or yarn under any circumstances.**
+
+To align with this ecosystem, the initial project bootstrapping command in our setup guide has been officially updated to bypass `npx` entirely:
+
+```bash
+pnpm create next-app@latest lkmail
+
+```
+
+Using `pnpm` not only guarantees faster install times through its global store, but it also creates a strict node_modules structure that prevents phantom dependencies.
+
+## Artifact Clean-up: The Devil is in the Details
+
+When establishing the rules for our Edge-powered Image Loader (`wsrv.nl`), a small markdown formatting artifact managed to slip into the core documentation. The base URL was accidentally wrapped in markdown link syntax inside a TypeScript code block.
+
+```typescript
+// ❌ The Artifact
+const baseUrl = "[https://filedn.eu/...](https://filedn.eu/...)";
+
+// ✅ The Cleaned Version
+const baseUrl = "[https://filedn.eu/lrPI4UkkIDzQ8H1Xj2o9uzf/lkmail](https://filedn.eu/lrPI4UkkIDzQ8H1Xj2o9uzf/lkmail)";
+
+```
+
+While minor, fixing this ensures that any AI coding assistants or developers reading the master prompt won't generate syntax errors when scaffolding new image components. In an architecture built for high performance and **E-E-A-T**, precision is everything.
+
+## Moving Forward
+
+With the foundational rules tightened and package management strictly enforced, the groundwork is perfectly set.
+
+Next up on the roadmap: We are officially moving into **Phase 2**, where we will implement the `imageLoader.ts` file in the codebase and start bringing the Home page UI to life with Tailwind CSS v4 and Framer Motion!
