@@ -2,7 +2,10 @@ import { getPostBySlug, getAllPosts } from "@/lib/mdx";
 import ReactMarkdown from "react-markdown";
 import { notFound } from "next/navigation";
 
-// 1. This tells Next.js to read the files at BUILD time and generate static HTML
+// 🔒 THE FIX: Lock the route to be 100% static
+export const dynamic = "force-static";
+export const dynamicParams = false;
+
 export async function generateStaticParams() {
   const langs = ['en', 'fr'];
   const paths: { lang: string; slug: string }[] = [];
@@ -17,7 +20,6 @@ export async function generateStaticParams() {
   return paths;
 }
 
-// 2. Your standard page component
 export default async function BlogPost({ 
   params 
 }: { 

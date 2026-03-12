@@ -3,6 +3,15 @@ import { getDictionary, Locale } from "@/getDictionary";
 import PageHeader from "@/components/PageHeader";
 import { getAllPosts, BlogPostMeta } from "@/lib/mdx";
 
+// 🔒 THE FIX: Lock the route to be 100% static
+export const dynamic = "force-static";
+export const dynamicParams = false;
+
+// 🔒 THE FIX: Tell Next.js which languages exist so it pre-builds the index
+export function generateStaticParams() {
+  return [{ lang: "en" }, { lang: "fr" }];
+}
+
 export default async function BlogIndex({ 
   params 
 }: { 
@@ -10,7 +19,6 @@ export default async function BlogIndex({
 }) {
   const { lang } = await params;
   
-  // Fetch dictionary and posts concurrently for maximum performance
   const [dict, posts] = await Promise.all([
     getDictionary(lang as Locale),
     getAllPosts(lang)
@@ -18,20 +26,17 @@ export default async function BlogIndex({
 
   return (
     <div className="flex flex-col gap-12 pb-16">
-      {/* 1. Consistent Page Header */}
       <PageHeader 
         title={dict.blog?.title || "Blog"} 
         description={dict.blog?.description || "My latest thoughts and technical articles."} 
       />
 
-      {/* 2. Empty State Handling */}
       {posts.length === 0 ? (
         <p className="text-gray-500 dark:text-gray-400">
           No posts found in this language yet.
         </p>
       ) : (
         <div className="grid grid-cols-1 gap-6">
-          {/* 3. Strongly Typed Post Mapping */}
           {posts.map((post: BlogPostMeta) => (
             <Link 
               key={post.slug} 
@@ -50,7 +55,6 @@ export default async function BlogIndex({
               </div>
               
               <div className="mt-6 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                {/* Format the date dynamically based on the current language */}
                 <time dateTime={post.date}>
                   {new Date(post.date).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', {
                     year: 'numeric',

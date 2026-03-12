@@ -1,0 +1,71 @@
+---
+title: "lkmail Update 1.20_4: The Final Next.js Edge Gotcha (Force Static)"
+description: "Locking down Next.js dynamic routing on Cloudflare Workers using dynamic = 'force-static' and dynamicParams = false to bypass the fs module."
+date: "2026-03-20"
+author: "Lionel Kaufmann"
+tags: ["Next.js", "Cloudflare", "SSG", "Architecture", "Debugging"]
+---
+
+Welcome to Update 1.20_4 of the **lkmail** development journey. I promise, this is the *actual* final chapter of the Cloudflare Edge saga!
+
+In our last update, we successfully implemented `generateStaticParams`. Our build logs were perfect: every single blog post was pre-rendered into static HTML (`●`). We eliminated the dynamic runtime (`ƒ`). 
+
+But when I tested the live URL, the blog was *still* failing. Why? Because Next.js was trying to be a little too smart for its own good.
+
+## The Problem: Next.js Fallback Behavior
+
+Even when you tell Next.js to pre-build your pages with `generateStaticParams`, it assumes you might add *new* content later. By default, Next.js enables a setting called `dynamicParams = true`. 
+
+This means if a user navigates to a blog post, Next.js serves the static HTML, but it *might still* try to run the page logic in the background on the server to check for updates or handle unexpected parameters. 
+
+As soon as that background process runs on the Cloudflare Worker, our code hits the `fs.readFileSync` method, realizes it doesn't have a hard drive, and silently crashes the entire request.
+
+## The KISS Fix: Route Segment Configs
+
+We needed to physically lock the doors. We had to tell Next.js: **"Do not EVER try to run this page dynamically on the server. Only serve the exact static HTML we built."**
+
+Next.js provides "Route Segment Config" variables specifically for this. By adding two magic lines of code to the top of our routing files, we completely disable the dynamic fallback:
+
+1. `export const dynamic = "force-static";`
+2. `export const dynamicParams = false;`
+
+### Applying the Locks
+
+We applied these locks to both our Blog Index (`src/app/[lang]/blog/page.tsx`) and our individual Blog Post route (`src/app/[lang]/blog/[slug]/page.tsx`):
+
+```tsx
+// 🔒 THE FIX: Lock the route to be 100% static
+export const dynamic = "force-static";
+export const dynamicParams = false;
+
+import { getPostBySlug, getAllPosts } from "@/lib/mdx";
+import ReactMarkdown from "react-markdown";
+import { notFound } from "next/navigation";
+
+export async function generateStaticParams() {
+  const langs = ['en', 'fr'];
+  const paths: { lang: string; slug: string }[] = [];
+
+  for (const lang of langs) {
+    const posts = await getAllPosts(lang);
+    for (const post of posts) {
+      paths.push({ lang, slug: post.slug });
+    }
+  }
+
+  return paths;
+}
+
+export default async function BlogPost({ params }: { params: Promise<{ lang: string, slug: string }> }) {
+  // ... rest of the component
+}
+
+```
+
+## Conclusion
+
+By explicitly setting `dynamicParams = false`, Cloudflare never even attempts to evaluate this code dynamically. When a user navigates to the blog, Cloudflare simply reaches into its bucket of pre-built assets and serves the HTML directly. The `fs` module is completely bypassed at runtime.
+
+Building on bleeding-edge tech like OpenNext and Cloudflare Workers requires patience. Frameworks often have hidden default behaviors that assume traditional Node.js server environments. When in doubt, strictly enforce your architecture!
+
+With the blog finally stable and lightning-fast, we are officially moving on to the Contact UI.
