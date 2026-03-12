@@ -3,11 +3,10 @@ import { getDictionary, Locale } from "@/getDictionary";
 import PageHeader from "@/components/PageHeader";
 import { getAllPosts, BlogPostMeta } from "@/lib/mdx";
 
-// 🔒 THE FIX: Lock the route to be 100% static
-export const dynamic = "force-static";
+// 🔒 STRICT SSG: Prevents Cloudflare from attempting dynamic rendering
 export const dynamicParams = false;
 
-// 🔒 THE FIX: Tell Next.js which languages exist so it pre-builds the index
+// 📦 Tell Next.js to pre-build the English and French indexes
 export function generateStaticParams() {
   return [{ lang: "en" }, { lang: "fr" }];
 }
@@ -19,6 +18,7 @@ export default async function BlogIndex({
 }) {
   const { lang } = await params;
   
+  // Fetch dictionary and local markdown files in parallel at build time
   const [dict, posts] = await Promise.all([
     getDictionary(lang as Locale),
     getAllPosts(lang)

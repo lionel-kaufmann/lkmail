@@ -2,10 +2,10 @@ import { getPostBySlug, getAllPosts } from "@/lib/mdx";
 import ReactMarkdown from "react-markdown";
 import { notFound } from "next/navigation";
 
-// 🔒 THE FIX: Lock the route to be 100% static
-export const dynamic = "force-static";
+// 🔒 STRICT SSG: Prevents Cloudflare from attempting dynamic rendering for unknown slugs
 export const dynamicParams = false;
 
+// 📦 Tell Next.js to pre-build every single markdown file as a static HTML page
 export async function generateStaticParams() {
   const langs = ['en', 'fr'];
   const paths: { lang: string; slug: string }[] = [];
@@ -27,6 +27,7 @@ export default async function BlogPost({
 }) {
   const { lang, slug } = await params;
   
+  // This runs entirely at BUILD time
   const post = await getPostBySlug(slug, lang);
 
   if (!post) {
