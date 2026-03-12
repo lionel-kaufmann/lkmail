@@ -1,0 +1,65 @@
+---
+title: "lkmail Update 1.20_1: Tooling Quirks, VS Code Security, and Env File Consolidation"
+description: "Resolving environment variable collisions between Next.js and Cloudflare, and silencing VS Code JSON schema security warnings."
+date: "2026-03-12"
+author: "Lionel Kaufmann"
+tags: ["Next.js", "Debugging", "VS Code", "Cloudflare", "Architecture"]
+---
+
+Welcome to a quick hotfix update—Update 1.20_1 of the **lkmail** development journey!
+
+Before diving into building our frontend UI components, we ran into a few classic local development quirks. When bridging two powerful ecosystems like Next.js and Cloudflare, overlapping configurations can cause friction. Today, we applied the **KISS** (Keep It Simple, Stupid) principle to permanently clean up our workspace.
+
+## 1. The Environment Variable Collision
+
+While managing our new SMTP2GO API keys, I realized I had accidentally created two separate local environment files: `.env.local` and `.dev.vars`. 
+
+This is a classic "framework collision":
+* **Next.js** natively looks for `.env.local` when running the standard `pnpm dev` server.
+* **Cloudflare/Wrangler** strictly looks for `.dev.vars` when simulating the Edge environment locally.
+
+Having secrets duplicated across two files is a recipe for disaster (secret sprawl). To establish a **Single Source of Truth**, we consolidated everything into `.env.local` and deleted `.dev.vars`. 
+
+Our final, bulletproof secrets architecture is now:
+1. **Local Development:** `SMTP2GO_API_KEY` lives in `.env.local` (handled by Next.js locally).
+2. **Production:** Keys are securely injected into the Edge via the CLI (`pnpm wrangler secret put SMTP2GO_API_KEY`).
+3. **Version Control:** Our `.gitignore` cleanly blocks `.env*` while explicitly allowing an empty `.env.example` file to serve as a safe template for the repository.
+
+## 2. VS Code and the `components.json` Schema
+
+The second quirk involved a persistent yellow warning in VS Code regarding our Shadcn UI `components.json` file:
+
+```text
+Unable to load schema from '[https://ui.shadcn.com/schema.json](https://ui.shadcn.com/schema.json)': Location is untrusted.
+
+```
+
+First, a rogue Markdown artifact (`[]()`) had accidentally nested itself into the URL string, breaking the JSON parser. After fixing the string, VS Code threw a secondary security warning.
+
+VS Code has a strict internal security policy that prevents it from downloading JSON formatting rules (schemas) from random internet URLs unless you manually whitelist them as "trusted."
+
+Because this error has absolutely zero impact on the Next.js build or the Shadcn CLI, I applied the ultimate KISS fix: **I just deleted the `$schema` line.**
+
+```json
+{
+  "style": "new-york",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": { ... }
+}
+
+```
+
+The Shadcn CLI still works flawlessly, the file is cleaner, and the annoying VS Code warning is gone forever.
+
+## Conclusion & Recap: What We Learned
+
+Debugging configuration files isn't glamorous, but it is the bedrock of a stable architecture. Here is a quick recap of the core lessons learned during this cleanup:
+
+1. **Frameworks Compete for Defaults:** When combining tools like Next.js and Cloudflare, always verify which environment file the local server is actually reading to avoid duplicating API keys.
+2. **Gitignore is Your Best Friend:** Using the `!.env.example` negation rule is the smartest way to keep a safe, empty template in your repository while locking down all other `.env` files.
+3. **Not All Warnings are Errors:** An editor warning (like VS Code's untrusted schema) doesn't mean your code is broken. Sometimes, deleting the offending configuration line is the cleanest and fastest solution.
+
+With our environment files consolidated and our editor warnings silenced, our local development environment is pristine. The backend is secure, the APIs are tested, and the MDX blog is live.
+
+Next up: We are finally opening the Shadcn UI toolkit to build the Contact page!
