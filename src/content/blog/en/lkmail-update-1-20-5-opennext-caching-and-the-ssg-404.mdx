@@ -1,0 +1,56 @@
+---
+title: "lkmail Update 1.20_5: OpenNext Caching and Defeating the SSG 404"
+description: "Why statically generated Next.js pages return 404s on Cloudflare, and how to configure OpenNext static asset caching for a pure SSG architecture."
+date: "2026-03-20"
+author: "Lionel Kaufmann"
+tags: ["Next.js", "Cloudflare", "OpenNext", "Caching", "Architecture", "SSG"]
+---
+
+Welcome to Update 1.20_5 of the **lkmail** development journey. Today, we tackled the final, most confusing boss of the Cloudflare Edge architecture: The SSG 404.
+
+In our last update, we locked down our routing. Our Next.js build logs proudly displayed `● (SSG)` next to all 47 of our markdown blog posts. They were successfully pre-rendered into HTML. Yet, when we pushed to production on Cloudflare, every single blog post returned a 404. 
+
+Here is why it happened, the rabbit hole we almost fell down, and the ultimate **KISS** (Keep It Simple, Stupid) solution we found in the official documentation.
+
+## The Autopsy: Where did the HTML go?
+
+When Next.js pre-builds Static Site Generation (SSG) pages, it stores that HTML in the Next.js Data Cache. On standard platforms like Vercel, this is handled automatically. 
+
+On Cloudflare, **OpenNext** requires explicit instructions on where to store this "Incremental Cache". Because we hadn't defined a storage mechanism, OpenNext essentially threw our 47 pre-rendered HTML pages in the trash during deployment. 
+
+When a user visited the live URL, Cloudflare checked the cache, found nothing, and fell back to the Worker to try and render the page dynamically. The Worker tried to use `fs.readFileSync` (which doesn't exist on the Edge), silently crashed, and returned a 404.
+
+## The Pivot: Reading the Docs (R2 vs KV vs Static Assets)
+
+At first, I thought we needed to provision a Cloudflare KV database or an R2 Object Storage bucket to hold these files. But after strictly auditing the [official OpenNext v1.17 documentation](https://opennext.js.org/cloudflare/caching), I realized that is only necessary for *Incremental Static Regeneration (ISR)*—sites that need to rebuild pages in the background.
+
+We are building a **100% Static Site (SSG)**. Our blog posts only update when we push a new commit. 
+
+The OpenNext documentation explicitly states for SSG sites:
+> *"If your site is static, you do not need a Queue nor a Tag Cache. You can use a read-only Workers Static Assets-based incremental cache for the prerendered routes."*
+
+## The KISS Fix: `open-next.config.ts`
+
+Instead of spinning up paid databases, we just needed to tell OpenNext to bundle our HTML into Cloudflare's standard static CDN assets. 
+
+We created an `open-next.config.ts` file at the root of the project:
+
+```typescript
+import { defineCloudflareConfig } from "@opennextjs/cloudflare";
+import staticAssetsIncrementalCache from "@opennextjs/cloudflare/overrides/incremental-cache/static-assets-incremental-cache";
+
+export default defineCloudflareConfig({
+  incrementalCache: staticAssetsIncrementalCache,
+});
+
+```
+
+We also audited our `page.tsx` files to remove the redundant `dynamic = "force-static"` flag, relying purely on Next.js's standard `dynamicParams = false` to prevent dynamic fallbacks.
+
+## The Result
+
+The next build was flawless. OpenNext read the config file, took our 47 pre-rendered HTML blog posts, and uploaded them directly to Cloudflare's global CDN alongside our CSS and images.
+
+No databases, no queues, zero dynamic execution on the Edge, and absolutely no 404s. Just blazingly fast, free, edge-delivered Markdown blogs.
+
+This saga was a phenomenal reminder: Always check the official documentation before adding infrastructure complexity. The KISS solution is almost always hiding in the docs!
