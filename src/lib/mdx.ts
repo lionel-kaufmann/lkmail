@@ -1,10 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import matter from 'gray-matter';
+import fm from 'front-matter';
 
 const BLOG_DIR = path.join(process.cwd(), 'src/content/blog');
 
-// 1. Define the TypeScript interface for your frontmatter
 export interface BlogPostMeta {
   title: string;
   description?: string;
@@ -16,50 +15,32 @@ export interface BlogPostMeta {
 
 export async function getPostBySlug(slug: string, lang: string) {
   const filePath = path.join(BLOG_DIR, lang, `${slug}.mdx`);
-  
   try {
     const fileContent = fs.readFileSync(filePath, 'utf8');
-    const { data, content } = matter(fileContent);
-    return { meta: data as Omit<BlogPostMeta, 'slug'>, content };
+    // Use the Edge-safe front-matter parser
+    const { attributes, body } = fm<Omit<BlogPostMeta, 'slug'>>(fileContent);
+    return { meta: attributes, content: body };
   } catch (error) {
-    console.error(`Error reading MDX file for slug ${slug} in language ${lang}:`, error);
     return null;
   }
 }
 
-// 2. Add the missing getAllPosts function
 export async function getAllPosts(lang: string): Promise<BlogPostMeta[]> {
   const langDir = path.join(BLOG_DIR, lang);
-  
-  try {
-    // If a language folder doesn't exist yet, return an empty array
-    if (!fs.existsSync(langDir)) {
-      return [];
-    }
+  if (!fs.existsSync(langDir)) return [];
 
-    const files = fs.readdirSync(langDir);
-    
-    const posts = files
-      // Only process .mdx files
-      .filter((file) => file.endsWith('.mdx'))
-      .map((file) => {
-        const filePath = path.join(langDir, file);
-        const fileContent = fs.readFileSync(filePath, 'utf8');
-        const { data } = matter(fileContent);
-        
-        // Remove .mdx extension to get the slug
-        const slug = file.replace(/\.mdx$/, '');
-        
-        return {
-          ...data,
-          slug,
-        } as BlogPostMeta;
-      });
+  const files = fs.readdirSync(langDir);
+  const posts = files
+    .filter((file) => file.endsWith('.mdx'))
+    .map((file) => {
+      const filePath = path.join(langDir, file);
+      const fileContent = fs.readFileSync(filePath, 'utf8');
+      
+      // Use the Edge-safe front-matter parser
+      const { attributes } = fm<Omit<BlogPostMeta, 'slug'>>(fileContent);
+      
+      return { ...attributes, slug: file.replace(/\.mdx$/, '') } as BlogPostMeta;
+    });
 
-    // Sort posts chronologically by date (newest first)
-    return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  } catch (error) {
-    console.error(`Error reading MDX directory for language ${lang}:`, error);
-    return [];
-  }
+  return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }

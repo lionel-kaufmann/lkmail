@@ -1,0 +1,57 @@
+---
+title: "lkmail Update 1.20_2: The Final eval() Boss and Masterclass in AI Prompting"
+description: "Defeating the hidden eval() trap in gray-matter on Cloudflare Workers, and how to write better AI prompts to prevent Edge-runtime deployment bugs."
+date: "2026-03-12"
+author: "Lionel Kaufmann"
+tags: ["Next.js", "Cloudflare", "Debugging", "AI Prompting", "Architecture"]
+---
+
+Welcome to Update 1.20_2 of the **lkmail** development journey!
+
+Just when I thought the Cloudflare deployment was perfectly stable, the blog mysteriously disappeared from the live site again. A quick check of the deployment logs revealed a familiar, haunting message:
+
+`▲ [WARNING] Using direct eval with a bundler is not recommended and may cause problems [direct-eval]`
+
+We thought we had killed the `eval()` bug when we uninstalled `next-mdx-remote`. It turns out, there was a final boss hiding in our dependency tree. Here is how we defeated it, and the crucial lesson it taught me about prompting AI correctly for modern web architecture.
+
+## The Challenge: The Hidden Engine in `gray-matter`
+
+When writing markdown blogs, developers use "frontmatter" (the YAML block at the top of the file containing the title, date, etc.). The industry-standard package to parse this is `gray-matter`.
+
+However, `gray-matter` contains a hidden JavaScript execution engine just in case a user decides to write executable JS inside their YAML. Even though we were only writing plain text, our bundler included this engine. Cloudflare's ultra-secure V8 Isolate (the Edge runtime) detected the `eval()` function inside `gray-matter` and instantly killed the worker process.
+
+### The KISS Fix
+
+We needed a package that parsed YAML using pure string manipulation, without attempting to execute anything. 
+
+By running `pnpm remove gray-matter` and `pnpm add front-matter`, we swapped to an explicitly Edge-safe package. A quick update to our `src/lib/mdx.ts` to use `fm()` instead of `matter()`, and the `[direct-eval]` warning vanished forever. The blog instantly came back online.
+
+## What We Learned: The AI Prompting Disconnect
+
+This multi-day debugging saga wasn't just a code issue; it was an **AI Prompting issue**. 
+
+When I initially built the MDX architecture, I asked my AI assistant: *"How do I parse MDX files in Next.js?"* The AI gave me a perfect, standard Node.js answer: Use `next-mdx-remote` and `gray-matter`. 
+
+The problem? **I didn't tell the AI where the code was going to live.** AI models assume you are deploying to a standard Node.js server (like Vercel or AWS EC2) unless you explicitly tell them otherwise. Node.js doesn't care about `eval()`. Cloudflare Edge Workers *strictly forbid it*.
+
+## How to Prevent This: 3 Rules for Prompting AI
+
+If you are building modern apps deploying to Edge runtimes, you must adapt how you talk to AI. Here is the strategy I now use to prevent these architectural conflicts:
+
+### 1. Declare Your Runtime Environment Immediately
+Never ask a generic architecture question. Always frame your environment first so the AI filters out incompatible packages.
+* ❌ **Bad Prompt:** "How do I parse markdown in Next.js?"
+* ✅ **Good Prompt:** "I am building a Next.js app that will be deployed via OpenNext to **Cloudflare Workers (V8 Edge Runtime)**. What is the most Edge-safe way to parse local MDX files without triggering eval() errors?"
+
+### 2. Challenge Dependencies for "Edge Compatibility"
+Before installing any package an AI recommends, ask it to verify the package's dependencies.
+* **Prompt:** "Does the `gray-matter` package rely on standard Node.js APIs (`fs`, `path`) or dynamic execution (`eval()`, `new Function`) that would break inside a Cloudflare V8 Isolate?"
+
+### 3. Always Provide the Raw Logs
+When a deployment fails silently or throws a warning, don't just describe the error to the AI. Copy and paste the *entire* build log. In our case, the AI spotted the `eval(str)` footprint hidden deep in the bundler output, which led us straight to the culprit.
+
+## Conclusion
+
+Building on the Edge forces you to be highly intentional about your dependencies. But more importantly, it forces you to treat AI not just as a code generator, but as an architectural partner that needs full context to give you the right advice. 
+
+With the `eval()` boss officially defeated, our backend is completely locked in!
