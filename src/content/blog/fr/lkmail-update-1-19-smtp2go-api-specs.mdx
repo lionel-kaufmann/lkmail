@@ -1,0 +1,84 @@
+---
+title: "lkmail Update 1.19: Mastering the SMTP2GO API Integration"
+description: "A deep dive into our SMTP2GO API specifications, tracking features, unsubscribe management, and Cloudflare secret rotation."
+date: "2026-03-19"
+author: "Lionel Kaufmann"
+tags: ["Next.js", "API", "Email", "Cloudflare", "Architecture", "Security"]
+---
+
+Welcome to Update 1.19 of the **lkmail** development journey!
+
+When we pivoted our transactional email infrastructure to SMTP2GO, we didn't just solve our DKIM alignment issues; we unlocked a suite of powerful API features. Today, I am documenting the exact API specifications, tracking capabilities, and the strict secret rotation process used in our production environment.
+
+## Secret Rotation: Deleting Resend & Adding SMTP2GO
+
+Switching providers means securely rotating our environment variables across both our local and edge environments. Leaving old, unused API keys in your production environment is a major security risk known as "secret sprawl."
+
+Following our strict **Golden Rule #10**, here is the exact CLI workflow used to transition the infrastructure:
+
+**1. Eradicating the Old Secret (Cloudflare):**
+Before adding the new key, we permanently deleted the decommissioned Resend API key from our deployed Cloudflare Worker using the Wrangler CLI:
+```bash
+pnpm wrangler secret delete RESEND_API_KEY
+
+```
+
+*(Wrangler asks for confirmation, and upon typing "yes", the secret is wiped from the edge).*
+
+**2. Local Environment Update:**
+Next, I updated the `.dev.vars` file at the root of the project, removing Resend and adding the new provider:
+
+```text
+SMTP2GO_API_KEY="your_new_api_key_here"
+
+```
+
+**3. Injecting the New Secret (Cloudflare):**
+Finally, to securely push the new key to production without ever touching the web dashboard:
+
+```bash
+pnpm wrangler secret put SMTP2GO_API_KEY
+
+```
+
+## API Specifications & Permissions
+
+Our Server Action communicates directly with the SMTP2GO REST API. Here are the core specifications of our integration:
+
+* **Endpoint Permission:** We strictly utilize the `/email/send` endpoint.
+* **Rate Limits:** We operate under the standard default rate limit, which is more than sufficient for portfolio contact form submissions.
+* **User Status:** The API key operates under the `Allowed` status. *(Note: SMTP2GO also offers a `Blocked` status to deny all API access, and a highly useful `Sandboxed` status where sending is allowed but emails are intentionally rejected for safe testing).*
+
+## Tracking & Advanced Features
+
+To monitor the health and engagement of our outbound communications, we enabled several advanced features directly within the SMTP2GO dashboard.
+
+### 1. Open and Click Tracking
+
+* **Open Tracking:** Enabled to quietly log when a recipient opens an email (via a tracking pixel).
+* **Click Tracking:** Enabled to monitor when a recipient clicks a link within the email payload.
+
+### 2. Bounce Notifications
+
+To maintain a pristine sender reputation, we enabled **Bounce Notifications**. If an email fails to deliver, the system is configured to automatically send a bounce notification email directly back to the original sender.
+
+### 3. Native Unsubscribe Footers
+
+While standard contact form replies might not need this, having an unsubscribe flow is a strict best practice for automated emails. We utilize SMTP2GO's native `%%UNSUBSCRIBE%%` placeholder to inject dynamic opt-out links.
+
+**For HTML Emails:**
+
+```html
+<br />
+<p><a href="%%UNSUBSCRIBE%%">unsubscribe</a></p>
+
+```
+
+**For Plain Text Emails:**
+
+```text
+To unsubscribe click: %%UNSUBSCRIBE%%
+
+```
+
+By heavily utilizing the native features of the SMTP2GO API, our Next.js Server Action remains incredibly lightweight (KISS principle), while still delivering enterprise-grade email tracking and deliverability!

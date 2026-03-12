@@ -1,0 +1,73 @@
+---
+title: "lkmail Update 1.10: Hydration Strictness and Assembling the Home Page"
+description: "Refining Next.js hydration suppression syntax and officially launching Phase 2 by assembling the localized Home page."
+date: "2026-03-10"
+author: "Lionel Kaufmann"
+tags: ["Next.js", "React", "Architecture", "UI", "Phase 2"]
+---
+
+Welcome to Update 1.10 of the **lkmail** development journey! 
+
+Today is an exciting day because we are officially crossing the threshold from Phase 1 (Foundation & Architecture) into **Phase 2 (Core Features & UI)**. We also took a brief moment to apply a strict syntax fix to our previous hydration patch.
+
+## Hydration Strictness: The Boolean Trap
+
+In our previous update, we added the `suppressHydrationWarning` attribute to our `<html>` and `<body>` tags. However, when writing React in TypeScript, it can be tempting to pass boolean attributes explicitly, like this: `suppressHydrationWarning={true}`.
+
+While this technically works in standard React, strict HTML parsers and certain Next.js linters can occasionally flag explicit boolean assignments on native DOM elements. 
+
+To respect the **KISS** (Keep It Simple, Stupid) principle and adhere to strict HTML5 standards, I simplified the blueprints to use the implicit boolean syntax:
+
+```tsx
+// ✅ KISS Fix
+<html lang={lang} suppressHydrationWarning>
+  <body suppressHydrationWarning className="...">
+
+```
+
+## The Missing Body Content Fix
+
+As we transitioned to building the actual pages, I encountered a strange rendering bug: the navigation header was rendering twice, and the footer was completely missing.
+
+This is a classic Next.js App Router pitfall.
+
+It happens when the main `page.tsx` file is not properly exporting its content, or if a layout component is accidentally imported directly into a page instead of wrapping it via the framework's file-system routing.
+
+To guarantee this never happens again, I added the absolute blueprint for `src/app/[lang]/page.tsx` (the Home Page) directly into the master prompt.
+
+## Assembling the Home Page
+
+Here is the clean, localized implementation of our Home page. It perfectly utilizes the `getDictionary` function for i18n and mounts the `HeroBanner` component we designed in Phase 1:
+
+```tsx
+import { getDictionary, Locale } from "@/getDictionary";
+import HeroBanner from "@/components/HeroBanner";
+
+export default async function Home({ 
+  params 
+}: { 
+  params: Promise<{ lang: string }> 
+}) {
+  const { lang } = await params;
+  const dict = await getDictionary(lang as Locale);
+
+  return (
+    <div className="flex flex-col gap-16">
+      <HeroBanner 
+        title={dict.home.title} 
+        subtitle={dict.home.description} 
+      />
+      {/* Future sections (Latest Posts, Projects) go here */}
+    </div>
+  );
+}
+
+```
+
+Because of our robust `layout.tsx` architecture, we do not need to import the Navbar or Footer here. Next.js automatically takes the `return` value of this page and injects it securely into the `<main>` tag's `{children}` prop inside the root layout.
+
+## Phase 2 is Underway!
+
+With the Home page successfully assembled and rendering perfectly between our global layout elements, Phase 2 is officially rolling.
+
+Our next major task is building the crown jewel of this project's SEO strategy: the MDX Blog architecture!

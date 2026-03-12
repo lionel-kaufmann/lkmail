@@ -1,0 +1,81 @@
+---
+title: "lkmail Update 1.19_1: Cloudflare Workers, the eval() Trap, and React Markdown"
+description: "Debugging silent failures in Next.js on Cloudflare Pages by migrating from next-mdx-remote to react-markdown to bypass V8 Isolate eval() restrictions."
+date: "2026-03-19"
+author: "Lionel Kaufmann"
+tags: ["Next.js", "Cloudflare", "Debugging", "MDX", "Architecture"]
+---
+
+Welcome to a special hotfix update—Update 1.19_1 of the **lkmail** development journey!
+
+Deployment is rarely without its surprises. Today, we successfully pushed our Next.js App Router project to Cloudflare via OpenNext. The build completed flawlessly, the triggers deployed, and the site went live. But when navigating to the newly minted blog... nothing. A silent failure with no visible error message on the screen.
+
+Here is how we debugged the issue, discovered the root cause in the Edge runtime, and applied the ultimate **KISS** (Keep It Simple, Stupid) fix.
+
+## The Clue: `[direct-eval]`
+
+When inspecting the Cloudflare build logs, everything looked green, except for one seemingly harmless yellow warning near the end of the bundling process:
+
+```text
+▲ [WARNING] Using direct eval with a bundler is not recommended and may cause problems [direct-eval]
+
+```
+
+At first glance, a bundler warning is easy to ignore. However, in the context of Cloudflare Workers, this warning is the smoking gun.
+
+## The Root Cause: V8 Isolates vs. Dynamic Execution
+
+Cloudflare Workers do not run on traditional Node.js servers; they run on V8 Isolates. For extreme security and performance, the Edge runtime strictly forbids dynamic code execution. Functions like `eval()` and `new Function()` are completely blocked.
+
+Our original MDX parsing strategy relied on the `next-mdx-remote` package. Under the hood, this package uses dynamic evaluation to compile Markdown strings into interactive React components on the fly.
+
+1. The bundler successfully packed the code (throwing the yellow warning).
+2. The Cloudflare Worker attempted to execute the `eval()` function to render the blog post.
+3. The V8 Isolate security model instantly killed the process, resulting in a silent failure.
+
+## The KISS Fix: Abstract Syntax Trees (AST)
+
+To maintain our local Markdown architecture without violating Edge security rules, we needed a parser that maps strings to React elements without executing them as raw JavaScript.
+
+We pivoted to the industry-standard, Edge-safe alternative: **`react-markdown`**.
+
+By running `pnpm add react-markdown` and `pnpm remove next-mdx-remote`, we swapped out the engine. `react-markdown` builds an Abstract Syntax Tree (AST) to safely render the content.
+
+Here is the updated, Cloudflare-safe blueprint for `src/app/[lang]/blog/[slug]/page.tsx`:
+
+```tsx
+import { getPostBySlug } from "@/lib/mdx";
+import ReactMarkdown from "react-markdown";
+
+export default async function BlogPost({ 
+  params 
+}: { 
+  params: Promise<{ lang: string, slug: string }> 
+}) {
+  const { slug } = await params;
+  
+  // Fetching the parsed frontmatter and markdown string
+  const post = await getPostBySlug(slug);
+
+  return (
+    <article className="prose dark:prose-invert max-w-none">
+      <h1>{post.meta.title}</h1>
+      
+      {/* Edge-safe mapping of markdown to React elements */}
+      <ReactMarkdown>
+        {post.content}
+      </ReactMarkdown>
+      
+    </article>
+  );
+}
+
+```
+
+## A Quick TypeScript Polish
+
+During the migration, TypeScript threw a strict-typing error (`Property 'metadata' does not exist on type...`). Our local `getPostBySlug` utility was returning an object with the key `meta`, but the component was trying to read `post.metadata`.
+
+A quick variable rename fixed the type mismatch, proving once again why strict TypeScript is invaluable for catching data structure bugs before they reach production.
+
+With the `eval()` trap completely bypassed, the blog is now rendering at lightning speed on the Cloudflare Edge!

@@ -1,0 +1,40 @@
+---
+title: "lkmail Update 1.4: File Structure Refinement and Base Components"
+description: "How to properly structure a Next.js 16 App Router project, including shadcn/ui configuration and isolating React Server Components."
+date: "2026-03-04"
+author: "Lionel Kaufmann"
+tags: ["Next.js", "Architecture", "React Components", "shadcn/ui"]
+---
+
+Welcome to Update 1.4 of the **lkmail** development journey!
+
+With our strict `pnpm` usage and Cloudflare OpenNext deployment pipeline fully secured, it is time to look at the internal organization of the repository. A clean, predictable folder structure is the hallmark of a maintainable codebase.
+
+Today, I applied several "KISS" optimizations to our file architecture and scaffolded our foundational UI elements.
+
+## Shadcn/ui Configuration
+
+To leverage robust, accessible UI components without writing boilerplate ARIA attributes, we are using `shadcn/ui` (manually adapted for Tailwind CSS v4). 
+
+To support this, I formally introduced the `components.json` file to the root directory. This configuration file acts as the bridge between the CLI tool and our Next.js architecture, ensuring that any UI blocks we generate are placed perfectly within our designated folders.
+
+## Strict Component Isolation
+
+In Next.js, it can be tempting to mix utility functions and UI components. To prevent architectural spaghetti, I have enforced a strict separation of concerns:
+
+* **`src/lib/`**: This directory is strictly reserved for pure TypeScript utility functions (like our `imageLoader.ts`, external API wrappers, or our centralized routing dictionary). No `.tsx` files belong here.
+* **`src/components/`**: This is the dedicated home for all React UI components.
+
+Following this rule, I expanded the `src/components/` directory to explicitly house our foundational building blocks:
+* `Navbar.tsx` & `Footer.tsx` (Global layout elements)
+* `LanguageSwitcher.tsx` (Our custom i18n client toggle)
+* `PageHeader.tsx` & `HeroBanner.tsx` (Core layout sections)
+* `Breadcrumbs.tsx` (For SEO and localized navigation)
+
+By keeping `Navbar.tsx` and `PageHeader.tsx` strictly inside `components/` instead of `lib/`, we adhere entirely to React architectural best practices.
+
+## Tracking Progress
+
+These additions have been officially logged in our Phase 1 Task List. Scaffolding these base components gives us the exact puzzle pieces we need before we start painting the UI with Tailwind CSS.
+
+With the foundation solidifying, we are getting incredibly close to wrapping up Phase 1 and moving into Phase 2, where we will assemble the Home page!

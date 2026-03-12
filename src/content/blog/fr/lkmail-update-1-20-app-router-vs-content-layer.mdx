@@ -1,0 +1,142 @@
+---
+title: "lkmail Update 1.20: The App Router vs. The Content Layer (And MDX i18n)"
+description: "Fixing Next.js routing conflicts, architecting a bilingual file-system for MDX, and building a strongly-typed Blog Index."
+date: "2026-03-20"
+author: "Lionel Kaufmann"
+tags: ["Next.js", "Architecture", "i18n", "MDX", "TypeScript"]
+---
+
+Welcome to Update 1.20 of the **lkmail** development journey!
+
+In our last update, we successfully bypassed Cloudflare's `eval()` restrictions by pivoting to `react-markdown`. However, when I went to test the live URL, the blog was still not rendering. After some deep architectural debugging, I found the culprit: a classic folder mix-up. 
+
+This mistake ultimately forced us to solidify our separation of concerns, build a completely bilingual MDX parser, and write a strongly-typed Blog Index. Here is the full breakdown of the architecture.
+
+## 1. Separation of Concerns: `app/` vs `content/`
+
+I had accidentally placed my `.mdx` blog files directly inside the `src/app/` directory instead of our custom `src/content/blog/` directory. 
+
+In the Next.js 16 App Router, the `src/app/` directory is the **routing engine**. Every folder inside `app/` that contains a `page.tsx` file is automatically compiled into a public URL. If you drop raw `.mdx` files into this routing engine without specific compiler plugins, Next.js either ignores them or throws internal build errors because they aren't valid React modules.
+
+On the other hand, `src/content/` is our **data layer**. It sits completely outside the routing engine. By moving the files back to `src/content/blog/`, my custom parser (`getPostBySlug`) could correctly use Node's File System (`fs`) to read the files without fighting the router.
+
+## 2. The Golden Rule of i18n Data
+
+With the files in the right place, I needed a strategy to translate them. To keep things strictly aligned with the **KISS** (Keep It Simple, Stupid) principle, I established the Golden Rule of i18n Data for this project:
+
+* **Short UI Text** (Buttons, Navbars, Page Titles) ➡️ Stored in `en.json` / `fr.json`.
+* **Long-form Content** (Blog paragraphs, code blocks) ➡️ Hardcoded directly inside localized `.mdx` files.
+
+Instead of stuffing 1,000-word markdown articles inside a JSON string, we apply file-system localization:
+
+```text
+src/
+└── content/
+    └── blog/
+        ├── en/
+        │   └── my-first-post.mdx
+        └── fr/
+            └── mon-premier-article.mdx
+
+```
+
+## 3. The Bilingual MDX Parser (`src/lib/mdx.ts`)
+
+To support this structure, we heavily upgraded our backend MDX utility. I introduced strict TypeScript interfaces and added a new `getAllPosts` function to crawl the correct language folder dynamically:
+
+```typescript
+import fs from 'fs';
+import path from 'path';
+import matter from 'gray-matter';
+
+const BLOG_DIR = path.join(process.cwd(), 'src/content/blog');
+
+export interface BlogPostMeta {
+  title: string;
+  description?: string;
+  date: string;
+  tags?: string[];
+  author?: string;
+  slug: string; 
+}
+
+// Fetches a single post for the dynamic [slug] page
+export async function getPostBySlug(slug: string, lang: string) {
+  const filePath = path.join(BLOG_DIR, lang, `${slug}.mdx`);
+  try {
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const { data, content } = matter(fileContent);
+    return { meta: data as Omit<BlogPostMeta, 'slug'>, content };
+  } catch (error) {
+    return null;
+  }
+}
+
+// Crawls the directory to fetch all posts for the Blog Index
+export async function getAllPosts(lang: string): Promise<BlogPostMeta[]> {
+  const langDir = path.join(BLOG_DIR, lang);
+  if (!fs.existsSync(langDir)) return [];
+
+  const files = fs.readdirSync(langDir);
+  const posts = files
+    .filter((file) => file.endsWith('.mdx'))
+    .map((file) => {
+      const filePath = path.join(langDir, file);
+      const fileContent = fs.readFileSync(filePath, 'utf8');
+      const { data } = matter(fileContent);
+      return { ...data, slug: file.replace(/\.mdx$/, '') } as BlogPostMeta;
+    });
+
+  return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+
+```
+
+## 4. The Typed Blog Index Page
+
+With our data layer fetching arrays of perfectly typed `BlogPostMeta` objects, we wired up the frontend.
+
+In `src/app/[lang]/blog/page.tsx`, we use `Promise.all` to fetch both our JSON dictionary (for the page header) and our MDX posts simultaneously.
+
+```tsx
+import Link from "next/link";
+import { getDictionary, Locale } from "@/getDictionary";
+import PageHeader from "@/components/PageHeader";
+import { getAllPosts, BlogPostMeta } from "@/lib/mdx";
+
+export default async function BlogIndex({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
+  const [dict, posts] = await Promise.all([
+    getDictionary(lang as Locale),
+    getAllPosts(lang)
+  ]);
+
+  return (
+    <div className="flex flex-col gap-12 pb-16">
+      <PageHeader title={dict.blog?.title} description={dict.blog?.description} />
+      
+      <div className="grid grid-cols-1 gap-6">
+        {posts.map((post: BlogPostMeta) => (
+          <Link 
+            key={post.slug} 
+            href={`/${lang}/blog/${post.slug}`}
+            className="group p-6 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-fuchsia-500 transition-colors"
+          >
+            <h2 className="text-2xl font-bold group-hover:text-fuchsia-500">{post.title}</h2>
+            <p className="text-gray-600 dark:text-gray-400">{post.description}</p>
+            
+            <time className="text-sm text-gray-500 mt-4 block" dateTime={post.date}>
+              {new Date(post.date).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US')}
+            </time>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+```
+
+## Conclusion
+
+By treating our MDX files as a strict data layer and routing them through a strongly-typed parser, we now have a perfectly localized, high-performance blog engine. The date automatically formats based on the locale, the UI is incredibly snappy, and Cloudflare is happy!

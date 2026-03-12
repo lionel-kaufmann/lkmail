@@ -1,0 +1,111 @@
+---
+title: "lkmail Update 1.20_3: Edge Runtimes, the File System, and Static Generation"
+description: "Why Node.js fs fails on Cloudflare Workers, how to read Next.js build logs, and implementing generateStaticParams for Edge-safe MDX blogs."
+date: "2026-03-20"
+author: "Lionel Kaufmann"
+tags: ["Next.js", "Cloudflare", "Architecture", "SSG", "Debugging"]
+---
+
+Welcome to Update 1.20_3 of the **lkmail** development journey—the grand finale of our Edge deployment saga!
+
+In our last update, we successfully defeated the `eval()` bug caused by `gray-matter`. The deployment was 100% clean with zero warnings. Yet, when I clicked on a blog post on the live site... it still didn't load. 
+
+It was time to look closely at the Next.js build logs. What I found taught me the final, most important lesson about deploying Next.js to Cloudflare Workers.
+
+## The Clue: Static vs. Dynamic Routes
+
+When you run a Next.js build, it prints a map of your routing tree. Here is exactly what our log looked like:
+
+```text
+Route (app)
+├ ● /[lang]/blog
+├ ƒ /[lang]/blog/[slug]
+
+```
+
+These symbols are crucial:
+
+* **`●` (Static):** Built at compile time into raw HTML.
+* **`ƒ` (Dynamic):** Rendered on demand at request time.
+
+Our Blog Index (`/blog`) was Static, but our individual blog posts (`[slug]`) were Dynamic. Why is this a massive problem for Cloudflare?
+
+## The Root Cause: Workers Don't Have Hard Drives
+
+Our custom MDX parser uses the Node.js `fs.readFileSync()` method to open and read our local Markdown files.
+
+When Next.js builds the app on a standard CI/CD server, the `fs` module works perfectly because it's running on a machine with a hard drive. But when a user visits a Dynamic route (`ƒ`) in production, the code runs *at request time* inside a Cloudflare Worker.
+
+Cloudflare Workers are ultra-fast, serverless V8 Isolates running on Edge nodes. **They do not have a local file system.** When our dynamic route tried to execute `fs.readFileSync` to load the blog post, it reached for a hard drive that didn't exist, failing silently.
+
+## The KISS Fix: Static Site Generation (SSG)
+
+We needed to prevent our Edge Worker from ever calling `fs`. The solution was to force Next.js to read every single `.mdx` file *during the build phase* and pre-render them into static HTML pages.
+
+To do this, we introduced Next.js's `generateStaticParams` function to our `src/app/[lang]/blog/[slug]/page.tsx` file:
+
+```tsx
+import { getPostBySlug, getAllPosts } from "@/lib/mdx";
+import ReactMarkdown from "react-markdown";
+import { notFound } from "next/navigation";
+
+// 1. Tell Next.js to read the file system at BUILD time
+export async function generateStaticParams() {
+  const langs = ['en', 'fr'];
+  const paths: { lang: string; slug: string }[] = [];
+
+  for (const lang of langs) {
+    const posts = await getAllPosts(lang);
+    for (const post of posts) {
+      // Pre-generate a static route for every file found
+      paths.push({ lang, slug: post.slug });
+    }
+  }
+
+  return paths;
+}
+
+// 2. Standard page component
+export default async function BlogPost({ 
+  params 
+}: { 
+  params: Promise<{ lang: string, slug: string }> 
+}) {
+  const { lang, slug } = await params;
+  const post = await getPostBySlug(slug, lang);
+
+  if (!post) notFound();
+
+  return (
+    <article className="prose dark:prose-invert max-w-none">
+      <h1>{post.meta.title}</h1>
+      <ReactMarkdown>{post.content}</ReactMarkdown>
+    </article>
+  );
+}
+
+```
+
+## The Result
+
+By feeding all our localized paths into `generateStaticParams`, Next.js knows exactly which URLs need to exist before the app even deploys.
+
+Our new build log output proved the fix worked:
+
+```text
+├ ● /[lang]/blog
+├ ● /[lang]/blog/[slug]
+
+```
+
+The `ƒ` turned into a `●`. Next.js converted our markdown files into pure, static HTML. Cloudflare never has to touch the `fs` module, and our blog posts now load instantly from the Edge CDN.
+
+## Recap: The Edge Mindset
+
+Deploying a custom data layer to the Edge requires a fundamental shift in how you view your architecture:
+
+1. **Dynamic Execution is Blocked:** No `eval()`.
+2. **Local Storage is a Myth:** No `fs` at runtime.
+3. **Pre-compute Everything:** Rely on SSG (`generateStaticParams`) to do the heavy lifting at build time.
+
+With our MDX engine fully Edge-compatible and lightning fast, it is finally time to start building our Contact UI!

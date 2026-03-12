@@ -1,0 +1,55 @@
+---
+title: "lkmail Update 1.7: Global Layout Injection and Artifact Clean-up"
+description: "How to properly mount global UI components like Navbars and Footers in the Next.js 16 App Router using the root localized layout."
+date: "2026-03-07"
+author: "Lionel Kaufmann"
+tags: ["Next.js", "Layout", "React", "Tailwind CSS", "Architecture"]
+---
+
+Welcome to Update 1.7 of the **lkmail** development journey!
+
+In our previous updates, we successfully scaffolded our foundational UI components like the `Navbar` and `Footer`. However, a component doesn't do much good if it isn't actually rendered on the screen! 
+
+Today, we applied a critical fix to ensure our global UI elements are visible across every single page, and we performed some final artifact clean-up to keep our code blueprints pristine.
+
+## The Root Layout Injection
+
+In the Next.js App Router, the `layout.tsx` file is the master skeleton of your application. Because our app is internationalized, our master skeleton lives at `src/app/[lang]/layout.tsx`.
+
+To ensure our navigation and footer persist seamlessly as the user navigates between pages (without re-rendering), they must be injected directly into this root layout file, wrapping the `children` prop.
+
+Here is the KISS (Keep It Simple, Stupid) implementation we locked into our master prompt:
+
+```tsx
+<body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white dark:bg-[#0a0a0a] text-[#171717] dark:text-[#ededed] min-h-screen flex flex-col`}>
+  
+  {/* Global Navigation */}
+  <Navbar dict={dict} lang={lang} />
+  
+  {/* Main Content Area */}
+  <main className="grow max-w-5xl mx-auto px-6 w-full">
+    {children}
+  </main>
+  
+  {/* Global Footer */}
+  <Footer />
+  
+</body>
+
+```
+
+### The "Sticky" Footer Trick
+
+Notice the Tailwind CSS utility classes on the `<body>` tag: `min-h-screen flex flex-col`. Combined with the `grow` class on the `<main>` element, this forces the content area to expand and automatically pushes the `<Footer />` to the very bottom of the screen, even if the page content is short.
+
+## Artifact Clean-up
+
+As part of maintaining a flawless "ground truth" for AI coding assistants, I also audited the `Footer.tsx` blueprint.
+
+During previous iterations, Markdown link artifacts (e.g., `[https://...](https://...)`) had accidentally leaked into the JSX `href` attributes. These have been scrubbed and replaced with standard, valid HTML string attributes (`href="https://github.com/lkmail"`).
+
+When relying on LLMs for development, maintaining a syntactically perfect master prompt is non-negotiable!
+
+## The True End of Phase 1
+
+With the layout completely wired up and the foundational blueprints polished, Phase 1 is now fully integrated and visible in the browser. Next stop: Phase 2 and the actual page content!

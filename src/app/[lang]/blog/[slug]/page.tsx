@@ -1,19 +1,32 @@
-import { getPostBySlug } from "@/lib/mdx";
+import { getPostBySlug, getAllPosts } from "@/lib/mdx";
 import ReactMarkdown from "react-markdown";
 import { notFound } from "next/navigation";
 
+// 1. This tells Next.js to read the files at BUILD time and generate static HTML
+export async function generateStaticParams() {
+  const langs = ['en', 'fr'];
+  const paths: { lang: string; slug: string }[] = [];
+
+  for (const lang of langs) {
+    const posts = await getAllPosts(lang);
+    for (const post of posts) {
+      paths.push({ lang, slug: post.slug });
+    }
+  }
+
+  return paths;
+}
+
+// 2. Your standard page component
 export default async function BlogPost({ 
   params 
 }: { 
   params: Promise<{ lang: string, slug: string }> 
 }) {
-  // Extract both lang and slug from the URL
   const { lang, slug } = await params;
   
-  // Pass both to the parser
   const post = await getPostBySlug(slug, lang);
 
-  // If the file doesn't exist (e.g., no French translation yet), trigger a 404
   if (!post) {
     notFound();
   }

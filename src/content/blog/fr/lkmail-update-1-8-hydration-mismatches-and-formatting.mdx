@@ -1,0 +1,55 @@
+---
+title: "lkmail Update 1.8: Conquering Hydration Mismatches in Next.js 16"
+description: "How to fix React hydration mismatch errors on the <body> tag caused by next/font/google and browser extensions."
+date: "2026-03-08"
+author: "Lionel Kaufmann"
+tags: ["Next.js", "React", "Debugging", "Hydration", "Architecture"]
+---
+
+Welcome to Update 1.8 of the **lkmail** development journey!
+
+As we finalize the global layout and ensure our `Navbar` and `Footer` are perfectly mounted, a very common—yet often misunderstood—Next.js warning appeared in the developer console. Today, we addressed a strict hydration mismatch and implemented a permanent fix.
+
+## The Hydration Mismatch Error
+
+While building the root layout, the console threw a hydration mismatch error pointing specifically to the `className` attribute on the `<body>` tag. 
+
+```text
+Warning: Prop `className` did not match. Server: "geist-sans-variable geist-mono-variable antialiased..." Client: "..."
+
+```
+
+**Why does this happen?**
+Next.js renders the initial HTML on the server. When the browser receives this HTML, React "hydrates" it to make it interactive. During this process, React compares the server-rendered DOM with what it *expects* the client DOM to look like.
+
+Because we are using `next/font/google` (which injects classes dynamically) alongside Client Components (like our `LanguageSwitcher` inside the `Navbar`), React noticed a discrepancy. Furthermore, third-party browser extensions (like ad blockers or password managers) often aggressively inject attributes into the `<html>` or `<body>` tags before React finishes hydrating, triggering this exact strict mode error.
+
+## The KISS Fix: `suppressHydrationWarning`
+
+To solve this, Next.js provides a specific escape hatch for the root document tags.
+
+I updated our `src/app/[lang]/layout.tsx` blueprint to include the `suppressHydrationWarning` boolean attribute on the `<html>` tag.
+
+```tsx
+// suppressHydrationWarning is REQUIRED here to prevent mismatch errors 
+// from browser extensions/fonts altering the <body> or <html> tags
+<html lang={lang} suppressHydrationWarning>
+  <head>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white dark:bg-[#0a0a0a] text-[#171717] dark:text-[#ededed] min-h-screen flex flex-col`}>
+    {/* ... */}
+  </body>
+</html>
+
+```
+
+*Note: This attribute only suppresses hydration warnings one level deep, so it safely ignores the dynamic class injections on the `<body>` tag without disabling hydration checks for the rest of our application UI.*
+
+## Formatting Clean-up
+
+In addition to the hydration fix, I performed a sweep of the Master Prompt (`README.md`). I ensured all the code blocks within the "Foundational Code Blueprints" section were formatted with strict, standard markdown.
+
+By removing raw text artifacts (like "Extrait de code"), the documentation is now perfectly structured for AI tools to read and parse seamlessly.
+
+With a completely clean developer console, we are fully prepared to build the Home page!
