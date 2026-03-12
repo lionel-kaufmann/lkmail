@@ -3,6 +3,14 @@ import PageHeader from "@/components/PageHeader";
 import { getLatestRepos } from "@/lib/api/github";
 import { Star, ExternalLink, CalendarDays } from "lucide-react";
 
+// 🔒 STRICT SSG: Keep architecture perfectly uniform with the blog
+export const dynamicParams = false;
+
+// 📦 Tell Next.js to pre-build the English and French project pages
+export function generateStaticParams() {
+  return [{ lang: "en" }, { lang: "fr" }];
+}
+
 export default async function ProjectsPage({ 
   params 
 }: { 
@@ -27,7 +35,6 @@ export default async function ProjectsPage({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {repos.map((repo) => {
-            // Format the last updated date based on the user's locale
             const lastUpdated = new Date(repo.pushedAt).toLocaleDateString(lang, {
               month: 'short',
               day: 'numeric',
@@ -54,7 +61,6 @@ export default async function ProjectsPage({
                     {repo.description || "No description provided yet."}
                   </p>
 
-                  {/* Topic Badges */}
                   {repo.repositoryTopics.nodes.length > 0 && (
                     <div className="flex flex-wrap gap-2 pt-2">
                       {repo.repositoryTopics.nodes.map(({ topic }) => (
@@ -69,7 +75,6 @@ export default async function ProjectsPage({
                   )}
                 </div>
                 
-                {/* Card Footer */}
                 <div className="mt-8 pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between text-xs font-medium text-gray-500 dark:text-gray-400">
                   <div className="flex items-center gap-4">
                     {repo.primaryLanguage && (
