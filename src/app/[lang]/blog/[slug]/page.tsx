@@ -1,17 +1,25 @@
 import { getPostBySlug } from "@/lib/mdx";
 import ReactMarkdown from "react-markdown";
+import { notFound } from "next/navigation";
 
 export default async function BlogPost({ 
   params 
 }: { 
   params: Promise<{ lang: string, slug: string }> 
 }) {
-  const { slug } = await params;
-  const post = await getPostBySlug(slug);
+  // Extract both lang and slug from the URL
+  const { lang, slug } = await params;
+  
+  // Pass both to the parser
+  const post = await getPostBySlug(slug, lang);
+
+  // If the file doesn't exist (e.g., no French translation yet), trigger a 404
+  if (!post) {
+    notFound();
+  }
 
   return (
     <article className="prose dark:prose-invert max-w-none">
-      {/* Change .metadata to .meta here 👇 */}
       <h1>{post.meta.title}</h1>
       
       <ReactMarkdown>
