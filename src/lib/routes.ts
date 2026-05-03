@@ -7,6 +7,7 @@ type RouteMap = {
   BLOG: string;
   PROJECTS: string;
   CONTACT: string;
+  PRIVACY: string;
 };
 
 // Store translated paths for E-E-A-T / SEO optimization
@@ -17,6 +18,7 @@ export const ROUTES: Record<Locale, RouteMap> = {
     BLOG: "/blog",
     PROJECTS: "/projects",
     CONTACT: "/contact",
+    PRIVACY: "/privacy", // <-- Nom exact du dossier
   },
   fr: {
     HOME: "/",
@@ -24,6 +26,7 @@ export const ROUTES: Record<Locale, RouteMap> = {
     BLOG: "/blog",
     PROJECTS: "/projets",
     CONTACT: "/contact",
+    PRIVACY: "/privacy", // <-- KISS: On garde le nom exact du dossier
   },
 } as const;
 
@@ -35,7 +38,7 @@ export const EXTERNAL_LINKS = {
 // Helper function to easily grab the correct path based on the current locale
 export function getRoute(routeKey: keyof RouteMap, locale: Locale | string): string {
   const safeLocale = (locale === "fr" || locale === "en") ? locale : "en";
-  // Always prepend the locale to the path (e.g., /fr/a-propos)
+  // Always prepend the locale to the path (e.g., /fr/privacy)
   const path = ROUTES[safeLocale][routeKey];
   return path === "/" ? `/${safeLocale}` : `/${safeLocale}${path}`;
 }

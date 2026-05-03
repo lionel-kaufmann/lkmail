@@ -54,10 +54,13 @@ export async function getLatestRepos(): Promise<GitHubRepo[]> {
         "User-Agent": "lkmail-portfolio",
       },
       body: JSON.stringify({ query }),
-      next: { revalidate: 3600 },
+      // SUPPRESSION du revalidate pour correspondre à l'architecture SSG stricte
     });
 
-    if (!res.ok) return [];
+    if (!res.ok) {
+      console.error(`[GitHub API Error] Status: ${res.status}`);
+      return [];
+    }
 
     const json = (await res.json()) as { 
       data: { user: { repositories: { nodes: GitHubRepo[] } } } 
@@ -65,7 +68,7 @@ export async function getLatestRepos(): Promise<GitHubRepo[]> {
     
     return json.data.user.repositories.nodes;
   } catch (error) {
-    console.error("GitHub API Error:", error);
+    console.error("[GitHub API Error] Network or Parsing failed:", error);
     return [];
   }
 }

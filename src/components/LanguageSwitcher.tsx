@@ -9,7 +9,16 @@ export default function LanguageSwitcher({ currentLocale }: { currentLocale: str
   // Fonction pour remplacer dynamiquement /fr/... par /en/... dans l'URL
   const redirectedPathName = (locale: string) => {
     if (!pathname) return "/";
+    
     const segments = pathname.split("/");
+    
+    // SECURITE : Vérifie si le premier segment de l'URL est bien une langue connue
+    // Si on est sur une URL racine comme "/" ou "/api/...", on préfixe simplement la locale
+    if (segments.length < 2 || (segments[1] !== "en" && segments[1] !== "fr")) {
+      return `/${locale}${pathname === "/" ? "" : pathname}`;
+    }
+
+    // Comportement standard : on remplace la langue existante
     segments[1] = locale;
     return segments.join("/");
   };

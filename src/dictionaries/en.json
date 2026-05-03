@@ -36,5 +36,27 @@
     "sending": "Sending...",
     "success": "Message sent successfully! I'll get back to you soon.",
     "error": "Failed to send message. Please try again."
+  },
+  "privacy": {
+    "title": "Exercise of your rights (FADP)",
+    "description": "In accordance with the Swiss Federal Act on Data Protection.",
+    "intro": "In accordance with the Federal Act on Data Protection (FADP), any natural person whose data is processed by Kaufmann Fiduciaire has the following rights concerning their personal data:",
+    "rights": [
+      { "label": "Right to information", "text": "You have the right to obtain confirmation that personal data concerning you is being processed and to receive all necessary information to exercise your rights and ensure transparency in processing." },
+      { "label": "Right of access", "text": "You may request access to all data concerning you held by our services." },
+      { "label": "Right to rectification", "text": "You have the right to request the immediate correction of inaccurate or incomplete data." },
+      { "label": "Right to erasure", "text": "You may request the deletion of your personal data, subject to legal retention obligations (particularly accounting and tax) to which the firm is subject." },
+      { "label": "Right to limitation and objection", "text": "You may object to the processing of your data or request the limitation of its use in certain cases provided for by law." },
+      { "label": "Right to portability", "text": "You have the right to receive your personal data in a structured and commonly used electronic format." }
+    ],
+    "modalitiesTitle": "How to exercise your rights",
+    "modalitiesIntro": "To exercise any of these rights, please send your request in writing (by mail or email) with proof of identity:",
+    "emailLabel": "By email:",
+    "emailValue": "info@lkmail.me",
+    "mailLabel": "By mail:",
+    "mailValue": "Kaufmann Fiduciaire, chemin des Semailles 42, 1212 Grand-Lancy",
+    "moreInfoLabel": "Additional information:",
+    "commitment": "We are committed to responding to your request as quickly as possible, and at the latest within 30 days of its receipt.",
+    "litigation": "In the event of a dispute, you also have the right to lodge a complaint with the Federal Data Protection and Information Commissioner (FDPIC)."
   }
 }

@@ -36,5 +36,27 @@
     "sending": "Envoi en cours...",
     "success": "Message envoyé avec succès ! Je vous répondrai bientôt.",
     "error": "Échec de l'envoi. Veuillez réessayer."
+  },
+  "privacy": {
+    "title": "Exercice de vos droits (nLPD)",
+    "description": "Conformément à la Loi fédérale sur la protection des données.",
+    "intro": "Conformément à la Loi fédérale sur la protection des données (nLPD), toute personne physique dont les données sont traitées par Kaufmann Fiduciaire dispose des droits suivants concernant ses données personnelles :",
+    "rights": [
+      { "label": "Droit à l'information", "text": "Vous avez le droit d'obtenir la confirmation que des données personnelles vous concernant sont traitées et de recevoir toutes les informations nécessaires pour exercer vos droits et garantir la transparence du traitement." },
+      { "label": "Droit d'accès", "text": "Vous pouvez demander à accéder à l'intégralité des données vous concernant détenues par nos services." },
+      { "label": "Droit de rectification", "text": "Vous avez le droit de demander la correction immédiate de données inexactes ou incomplètes." },
+      { "label": "Droit à l'effacement", "text": "Vous pouvez demander la suppression de vos données personnelles, sous réserve des obligations légales de conservation (notamment comptables et fiscales) auxquelles la fiduciaire est soumise." },
+      { "label": "Droit à la limitation et à l'opposition", "text": "Vous pouvez vous opposer au traitement de vos données ou demander la limitation de leur utilisation dans certains cas prévus par la loi." },
+      { "label": "Droit à la portabilité", "text": "Vous avez le droit de recevoir vos données personnelles dans un format électronique structuré et couramment utilisé." }
+    ],
+    "modalitiesTitle": "Modalités d'exercice",
+    "modalitiesIntro": "Pour exercer l'un de ces droits, veuillez adresser votre demande par écrit (courrier postal ou e-mail) en justifiant de votre identité :",
+    "emailLabel": "Par e-mail :",
+    "emailValue": "info@lkmail.me",
+    "mailLabel": "Par courrier :",
+    "mailValue": "Kaufmann Fiduciaire, chemin des Semailles 42, 1212 Grand-Lancy",
+    "moreInfoLabel": "Informations complémentaires :",
+    "commitment": "Nous nous engageons à répondre à votre demande dans les meilleurs délais, et au plus tard dans les 30 jours suivant sa réception.",
+    "litigation": "En cas de litige, vous disposez également du droit de déposer une réclamation auprès du Préposé fédéral à la protection des données et à la transparence (PFPDT)."
   }
 }

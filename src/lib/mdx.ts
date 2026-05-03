@@ -17,30 +17,37 @@ export async function getPostBySlug(slug: string, lang: string) {
   const filePath = path.join(BLOG_DIR, lang, `${slug}.mdx`);
   try {
     const fileContent = fs.readFileSync(filePath, 'utf8');
-    // Use the Edge-safe front-matter parser
     const { attributes, body } = fm<Omit<BlogPostMeta, 'slug'>>(fileContent);
     return { meta: attributes, content: body };
   } catch (error) {
+    console.error(`[MDX Error] Failed to read or parse post '${slug}' in '${lang}':`, error);
     return null;
   }
 }
 
 export async function getAllPosts(lang: string): Promise<BlogPostMeta[]> {
   const langDir = path.join(BLOG_DIR, lang);
-  if (!fs.existsSync(langDir)) return [];
+  
+  if (!fs.existsSync(langDir)) {
+    console.warn(`[MDX Warning] Directory not found for language: ${langDir}`);
+    return [];
+  }
 
   const files = fs.readdirSync(langDir);
   const posts = files
     .filter((file) => file.endsWith('.mdx'))
     .map((file) => {
       const filePath = path.join(langDir, file);
-      const fileContent = fs.readFileSync(filePath, 'utf8');
-      
-      // Use the Edge-safe front-matter parser
-      const { attributes } = fm<Omit<BlogPostMeta, 'slug'>>(fileContent);
-      
-      return { ...attributes, slug: file.replace(/\.mdx$/, '') } as BlogPostMeta;
-    });
+      try {
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        const { attributes } = fm<Omit<BlogPostMeta, 'slug'>>(fileContent);
+        return { ...attributes, slug: file.replace(/\.mdx$/, '') } as BlogPostMeta;
+      } catch (error) {
+        console.error(`[MDX Error] Failed to parse file '${file}':`, error);
+        return null;
+      }
+    })
+    .filter((post): post is BlogPostMeta => post !== null);
 
   return posts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
