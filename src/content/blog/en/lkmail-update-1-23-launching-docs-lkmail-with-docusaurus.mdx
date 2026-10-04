@@ -1,0 +1,48 @@
+---
+title: "lkmail Update 1.23: Launching docs.lkmail.me with Docusaurus"
+description: "A new public repository and a dedicated Docusaurus site for LKMail documentation, guides, and blog posts."
+date: "2026-10-04"
+author: "Lionel Kaufmann"
+tags: ["Docusaurus", "Documentation", "GitHub", "Cloudflare", "Open Source"]
+---
+
+LKMail is getting a dedicated home for documentation: **[docs.lkmail.me](https://docs.lkmail.me)**. We will develop this documentation app in the public **[lionel-kaufmann/docusaurus](https://github.com/lionel-kaufmann/docusaurus)** repository, adding documentation alongside blog posts as the project grows.
+
+The goal is practical: keep explanations, guides, and development notes close to the code, with a published site that makes them easy to browse.
+
+## A Separate Space for Documentation
+
+The main lkmail.me website remains my personal portfolio and blog. The new documentation app gives the LKMail ecosystem a dedicated place for reference material and longer guides.
+
+Documentation and blog posts serve different purposes. A guide should explain how something works today; a blog post can record why we made a decision or how a feature evolved. Keeping both in the documentation app will let us connect ongoing development with the instructions people need to use it.
+
+## What Is Already in the Repository
+
+I reviewed the repository to describe its current foundation. It uses **Docusaurus 3.10.2**, React 19, and TypeScript, with a pnpm lockfile. The classic preset enables both documentation and blogging.
+
+The content structure is straightforward:
+
+- `docs/` holds documentation, with a sidebar generated from its folder structure.
+- `blog/` holds dated posts, with author and tag definitions.
+- `src/pages/` holds custom pages, including the homepage.
+- `src/css/custom.css` provides the site's custom styles.
+
+The blog configuration enables reading times and RSS and Atom feeds. Documentation and blog edit links point back to our own GitHub repository. Broken links are configured to fail the build, helping catch navigation problems before publication.
+
+The site currently has an English locale. It also still contains the Docusaurus starter tutorials and example blog posts. Those are scaffolding for the next stage, rather than a finished collection of LKMail guides.
+
+## Preparing the Public Address
+
+The site configuration now uses `https://docs.lkmail.me` as its production URL and `/` as its base path. The title and tagline identify it as **LKMail documentation**.
+
+The Cloudflare configuration names the Worker `docusaurus`, serves static files from the generated `build` directory, and declares `docs.lkmail.me` as a custom domain. It also keeps the Workers development URL and preview URLs enabled.
+
+This gives the documentation app a simple hosting model: Docusaurus generates the site, and Cloudflare serves the resulting static files. The repository configuration establishes the intended public address; this read-only review did not independently test the live domain.
+
+## Building the Content in Public
+
+The next step is to develop this foundation into useful documentation. We will add guides and reference pages under `docs/`, then publish blog posts alongside them to explain changes and decisions.
+
+Because the repository is public, readers can inspect the source, follow its development, and propose improvements through GitHub. The existing edit links make the connection between a published page and its source explicit.
+
+For this post, the Docusaurus repository was reviewed without modifying it. The work ahead is to replace the starter material with content that reflects LKMail and build a documentation app that remains useful as the project evolves.

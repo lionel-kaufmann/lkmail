@@ -1,0 +1,48 @@
+---
+title: "lkmail Update 1.23 : Lancement de docs.lkmail.me avec Docusaurus"
+description: "Un dépôt public et un site Docusaurus dédié aux documentations, aux guides et aux articles de blog de LKMail."
+date: "2026-10-04"
+author: "Lionel Kaufmann"
+tags: ["Docusaurus", "Documentation", "GitHub", "Cloudflare", "Open Source"]
+---
+
+LKMail se dote d’un espace dédié à sa documentation : **[docs.lkmail.me](https://docs.lkmail.me)**. Nous développerons cette application dans le dépôt public **[lionel-kaufmann/docusaurus](https://github.com/lionel-kaufmann/docusaurus)**, en ajoutant des documentations et des articles de blog au fil de son évolution.
+
+L’objectif est concret : conserver les explications, les guides et les notes de développement près du code, puis les rendre accessibles dans un site facile à parcourir.
+
+## Un espace dédié à la documentation
+
+Le site principal lkmail.me reste mon portfolio personnel et mon blog. La nouvelle application offre à l’écosystème LKMail un espace pour les informations de référence et les guides plus détaillés.
+
+La documentation et les articles de blog répondent à des besoins différents. Un guide explique le fonctionnement actuel ; un article peut raconter les raisons d’une décision ou l’évolution d’une fonctionnalité. Leur présence dans la même application permettra de relier le développement aux instructions utiles pour les lecteurs.
+
+## Les bases présentes dans le dépôt
+
+J’ai consulté le dépôt pour décrire son état actuel. Il utilise **Docusaurus 3.10.2**, React 19 et TypeScript, avec un fichier de verrouillage pnpm. Le preset classique active la documentation et le blog.
+
+L’organisation du contenu est simple :
+
+- `docs/` contient la documentation, avec une navigation latérale générée à partir des dossiers.
+- `blog/` accueille les articles datés, ainsi que les définitions des auteurs et des tags.
+- `src/pages/` contient les pages personnalisées, dont la page d’accueil.
+- `src/css/custom.css` définit les styles personnalisés.
+
+La configuration du blog active le temps de lecture et les flux RSS et Atom. Les liens de modification des documentations et des articles renvoient vers notre dépôt GitHub. Les liens cassés provoquent un échec de compilation, ce qui aide à détecter les problèmes de navigation avant publication.
+
+Le site est actuellement configuré en anglais. Il contient encore les tutoriels et les exemples d’articles fournis par Docusaurus. Ce sont les bases du travail à venir, plutôt qu’une collection achevée de guides LKMail.
+
+## Préparer l’adresse publique
+
+La configuration définit `https://docs.lkmail.me` comme URL de production et `/` comme chemin de base. Le titre et le sous-titre présentent le site comme **LKMail documentation**.
+
+La configuration Cloudflare nomme le Worker `docusaurus`, sert les fichiers statiques du dossier généré `build` et déclare `docs.lkmail.me` comme domaine personnalisé. L’adresse de développement Workers et les URL de prévisualisation restent également activées.
+
+Le modèle d’hébergement est donc simple : Docusaurus génère le site, puis Cloudflare sert les fichiers statiques produits. Le dépôt définit l’adresse publique prévue ; cette consultation en lecture seule n’a pas vérifié indépendamment le domaine en ligne.
+
+## Développer le contenu dans un dépôt public
+
+La prochaine étape consiste à transformer cette base en une documentation utile. Nous ajouterons des guides et des pages de référence dans `docs/`, ainsi que des articles de blog pour expliquer les changements et les décisions.
+
+Le dépôt public permet aux lecteurs de consulter le code source, de suivre le développement et de proposer des améliorations sur GitHub. Les liens de modification relient directement les pages publiées à leur source.
+
+Pour préparer cet article, le dépôt Docusaurus a été consulté sans être modifié. Il reste à remplacer les exemples par du contenu propre à LKMail et à développer une application de documentation qui accompagne durablement le projet.
