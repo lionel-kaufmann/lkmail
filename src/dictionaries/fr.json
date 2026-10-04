@@ -24,7 +24,8 @@
   "projects": {
     "title": "Projets",
     "description": "Une collection de mes travaux récents et contributions open-source, récupérée directement depuis GitHub.",
-    "viewOnGithub": "Voir sur GitHub"
+    "viewOnGithub": "Voir sur GitHub",
+    "viewRoadmap": "Voir la feuille de route"
   },
   "contact": {
     "title": "Contact",

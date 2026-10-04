@@ -42,20 +42,22 @@ export default async function ProjectsPage({
             });
 
             return (
-              <a 
-                key={repo.name} 
-                href={repo.url} 
-                target="_blank" 
-                rel="noopener noreferrer"
+              <article
+                key={repo.name}
                 className="group flex flex-col justify-between p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0a0a0a] shadow-sm hover:shadow-md hover:-translate-y-1 hover:border-fuchsia-500 transition-all duration-300"
               >
                 <div className="space-y-4">
-                  <div className="flex items-start justify-between">
+                  <a
+                    href={repo.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-start justify-between gap-4 rounded focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-fuchsia-500"
+                  >
                     <h3 className="text-xl font-bold tracking-tight text-gray-900 dark:text-gray-100 group-hover:text-fuchsia-500 transition-colors">
                       {repo.name}
                     </h3>
-                    <ExternalLink className="h-5 w-5 text-gray-400 group-hover:text-fuchsia-500 transition-colors" />
-                  </div>
+                    <ExternalLink aria-hidden="true" className="h-5 w-5 text-gray-400 group-hover:text-fuchsia-500 transition-colors" />
+                  </a>
                   
                   <p className="text-gray-600 dark:text-gray-400 text-sm line-clamp-3">
                     {repo.description || "No description provided yet."}
@@ -97,7 +99,27 @@ export default async function ProjectsPage({
                     <span>{lastUpdated}</span>
                   </div>
                 </div>
-              </a>
+                <div className="mt-6 flex flex-wrap gap-4 text-sm font-medium">
+                  <a
+                    href={repo.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-fuchsia-600 dark:text-fuchsia-400 underline underline-offset-4 hover:text-fuchsia-500"
+                  >
+                    {dict.projects.viewOnGithub}
+                  </a>
+                  {repo.url === "https://github.com/lionel-kaufmann/lkmail" && (
+                    <a
+                      href="https://github.com/users/lionel-kaufmann/projects/1/views/1"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-fuchsia-600 dark:text-fuchsia-400 underline underline-offset-4 hover:text-fuchsia-500"
+                    >
+                      {dict.projects.viewRoadmap}
+                    </a>
+                  )}
+                </div>
+              </article>
             );
           })}
         </div>
