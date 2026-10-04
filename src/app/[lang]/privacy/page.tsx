@@ -28,7 +28,7 @@ export default async function PrivacyPage({
         
         {/* Liste des droits */}
         <div className="grid grid-cols-1 gap-6">
-          {dict.privacy.rights.map((right: any, index: number) => (
+          {dict.privacy.rights.map((right, index) => (
             <div key={index} className="p-6 rounded-2xl border border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-[#0a0a0a]">
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{right.label}</h3>
               <p>{right.text}</p>

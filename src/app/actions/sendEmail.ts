@@ -7,7 +7,7 @@ interface Smtp2goResponse {
   };
 }
 
-export async function sendEmail(prevState: any, formData: FormData) {
+export async function sendEmail(_prevState: unknown, formData: FormData) {
   // 2. Data extraction with basic sanitization (trimming whitespace)
   const name = formData.get("name")?.toString().trim();
   const email = formData.get("email")?.toString().trim();

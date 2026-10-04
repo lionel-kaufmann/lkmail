@@ -1,9 +1,10 @@
 "use client";
 
 import { useActionState } from "react";
+import type { getDictionary } from "@/getDictionary";
 import { sendEmail } from "@/app/actions/sendEmail";
 
-export default function ContactForm({ dict }: { dict: any }) {
+export default function ContactForm({ dict }: { dict: Awaited<ReturnType<typeof getDictionary>> }) {
   // useActionState is the modern React 19 way to handle form actions
   const [state, formAction, isPending] = useActionState(sendEmail, null);
 
