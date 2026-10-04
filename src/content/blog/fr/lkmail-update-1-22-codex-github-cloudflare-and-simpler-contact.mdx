@@ -1,0 +1,49 @@
+---
+title: "lkmail Update 1.22 : Codex, GitHub, Cloudflare et une page contact simplifiée"
+description: "La maintenance de lkmail avec Codex, le déploiement via GitHub et Cloudflare, et le remplacement d’un formulaire victime de spam quotidien par un lien e-mail."
+date: "2026-10-04"
+author: "Lionel Kaufmann"
+tags: ["Codex", "GitHub", "Cloudflare", "Maintenance", "KISS"]
+---
+
+Aujourd’hui, j’ai utilisé **Codex** pour maintenir lkmail, avec un accès au code local, au dépôt GitHub et au compte Cloudflare. Nous avons mis à jour les dépendances, réparé les outils de vérification et simplifié la page contact. Nous avons aussi établi le processus de déploiement à suivre pour les prochaines modifications.
+
+## Vérifier les accès avant de commencer
+
+Avant toute modification, nous avons vérifié les autorisations disponibles. Codex pouvait modifier le projet local, accéder à mon dépôt GitHub et consulter le Worker Cloudflare existant. Wrangler nécessitait une connexion distincte dans le navigateur pour pouvoir déployer en ligne de commande.
+
+Nous pouvions alors travailler localement, valider les changements et garder le dépôt cohérent avec la version publiée.
+
+## Mettre à jour sans casser le site
+
+La maintenance a actualisé React, Tailwind CSS, Wrangler, plusieurs bibliothèques d’interface et les types associés. Elle a aussi révélé une commande de lint obsolète : le projet utilisait Next.js 16, mais appelait encore `next lint`. Nous l’avons remplacée par la commande ESLint et sa configuration native, puis corrigé les erreurs de typage et le comportement instable d’une animation.
+
+La compatibilité a guidé les choix de versions. ESLint 10 échouait avec les plugins React existants ; nous avons donc conservé ESLint 9. La nouvelle version de l’adaptateur Cloudflare dépendait d’un paquet npm indisponible : cette mise à jour reste en attente.
+
+Nous avons également essayé Next.js 16.3.8. La compilation de production réussissait, mais les vérifications sur le site publié renvoyaient des erreurs 404 pour le blog et les projets. Le retour à Next.js 16.2.9 a rétabli ces pages, tout en conservant les autres mises à jour. Une compilation réussie doit donc être suivie d’une vérification en production.
+
+## GitHub comme point de départ du déploiement
+
+Le premier déploiement a été effectué directement avec Wrangler. J’ai ensuite précisé le fonctionnement attendu : **GitHub est déjà connecté à Cloudflare, et un push sur `main` déclenche une nouvelle compilation.**
+
+Nous avons poussé les modifications validées sur GitHub, puis confirmé que Cloudflare avait récupéré ce commit précis, compilé l’application et terminé le déploiement. Les vérifications des pages publiques ont ensuite réussi.
+
+Pour les prochaines mises à jour, le processus est simple :
+
+1. Modifier et relire le code localement avec Codex.
+2. Exécuter les vérifications utiles et la compilation de production.
+3. Créer un commit et pousser les changements sur GitHub.
+4. Laisser Cloudflare compiler et déployer grâce à la connexion existante.
+5. Vérifier les pages publiées.
+
+La version publique reste ainsi liée au code du dépôt, avec un commit identifiable pour chaque mise à jour.
+
+## Supprimer un formulaire victime de spam quotidien
+
+Mon formulaire de contact recevait du spam tous les jours. J’ai décidé de supprimer entièrement cette fonctionnalité et de proposer une adresse e-mail directe.
+
+Nous avons supprimé le composant du formulaire, l’action serveur qui envoyait les messages via SMTP2GO et les traductions devenues inutiles. Les pages contact en français et en anglais affichent désormais un lien cliquable vers **[info@lkmail.me](mailto:info@lkmail.me)**.
+
+Cette modification a suivi le même processus GitHub vers Cloudflare. Après le déploiement, nous avons vérifié les deux langues : le lien e-mail était présent et le formulaire avait disparu.
+
+Une adresse e-mail publique peut toujours recevoir du spam. Ce changement supprime la fonctionnalité d’envoi du site et son code associé, tout en conservant un moyen simple de me contacter. Pour ce site personnel, c’est la fonctionnalité plus légère que je souhaite maintenir.

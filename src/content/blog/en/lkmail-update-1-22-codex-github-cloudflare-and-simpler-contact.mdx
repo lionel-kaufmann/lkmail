@@ -1,0 +1,49 @@
+---
+title: "lkmail Update 1.22: Codex, GitHub, Cloudflare, and a Simpler Contact Page"
+description: "Updating lkmail with Codex, deploying through the GitHub-to-Cloudflare workflow, and replacing a contact form that attracted daily spam with a direct email link."
+date: "2026-10-04"
+author: "Lionel Kaufmann"
+tags: ["Codex", "GitHub", "Cloudflare", "Maintenance", "KISS"]
+---
+
+Today I used **Codex** to maintain lkmail, with access to the local code, GitHub repository, and Cloudflare account. We updated dependencies, repaired the development checks, and simplified the contact page. We also settled on the deployment workflow I want to use for future changes.
+
+## Starting with Access and Validation
+
+Before editing anything, we checked the available permissions. Codex could modify the local checkout, access my GitHub repository, and inspect the existing Cloudflare Worker. Wrangler needed a separate browser login for command-line deployment.
+
+That gave us a practical starting point: make changes locally, validate them, and keep the repository in sync with production.
+
+## Updating Dependencies Without Breaking the Site
+
+The maintenance update refreshed React, Tailwind CSS, Wrangler, UI packages, and supporting types. It also uncovered a broken lint command: the project was using Next.js 16 but still called `next lint`. We replaced it with the ESLint CLI and a native flat configuration, then fixed the typing errors and unstable animation timing it reported.
+
+Compatibility mattered more than installing every latest version. ESLint 10 failed with the existing React plugins, so we kept ESLint 9. The newest Cloudflare adapter referenced an unavailable npm dependency, so that upgrade stayed on hold.
+
+We also tried Next.js 16.3.8. Its production build passed, but live checks returned 404 errors on the blog and projects pages. Restoring Next.js 16.2.9 brought those routes back while retaining the other updates. This was a useful reminder that a successful build still needs verification on the deployed site.
+
+## GitHub Is the Deployment Starting Point
+
+The first deployment was made directly through Wrangler. I then clarified the intended workflow: **GitHub is already connected to Cloudflare, and pushing to `main` triggers a new build.**
+
+We pushed the validated maintenance changes to GitHub and confirmed that Cloudflare picked up that exact commit, built it, and deployed it successfully. The live route checks passed afterward.
+
+For future updates, the sequence is straightforward:
+
+1. Edit and review the code locally with Codex.
+2. Run the relevant checks and production build.
+3. Commit and push the changes to GitHub.
+4. Let the connected Cloudflare workflow build and deploy.
+5. Verify the live pages.
+
+This keeps the published application tied to the source in the repository and gives each update a traceable commit.
+
+## Removing a Contact Form That Attracted Daily Spam
+
+My contact form was being spammed on a daily basis. I decided to remove the feature completely and offer a direct email address instead.
+
+We deleted the form component, the server action that sent messages through SMTP2GO, and the unused form translations. Both the English and French contact pages now display a clickable **[info@lkmail.me](mailto:info@lkmail.me)** link.
+
+The change went through the same GitHub-to-Cloudflare workflow. After deployment, we checked both language versions: the email link was present, and the form was gone.
+
+A public email address can still receive spam. This change removes the site's message-submission feature and its sending code, while keeping a simple way to contact me. For this personal site, that is the smaller feature I want to maintain.
