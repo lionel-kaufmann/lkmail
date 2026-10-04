@@ -7,7 +7,10 @@
   },
   "home": {
     "title": "Identité Digitale Indépendante",
-    "description": "Bienvenue sur mon espace personnel sur le web."
+    "description": "Bienvenue sur mon espace personnel sur le web.",
+    "latestPosts": "Derniers articles",
+    "viewAllPosts": "Voir tous les articles",
+    "readPost": "Lire l’article"
   },
   "about": {
     "title": "À propos",
