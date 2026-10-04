@@ -29,13 +29,7 @@
   "contact": {
     "title": "Contact",
     "description": "Reach out for collaborations, inquiries, or just to say hi.",
-    "name": "Name",
-    "email": "Email",
-    "message": "Message",
-    "send": "Send Message",
-    "sending": "Sending...",
-    "success": "Message sent successfully! I'll get back to you soon.",
-    "error": "Failed to send message. Please try again."
+    "email": "Email"
   },
   "privacy": {
     "title": "Exercise of your rights (FADP)",
